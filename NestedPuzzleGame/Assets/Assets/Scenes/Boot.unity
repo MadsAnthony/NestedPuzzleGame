@@ -205,6 +205,7 @@ MonoBehaviour:
   puzzleCameraTexture: {fileID: 8400000, guid: 66b85f48c5484c34881dea0d3b42f335, type: 2}
   goalTexture: {fileID: 2800000, guid: 6d313820a7a9f8042a924f35b7007706, type: 3}
   snapShot: {fileID: 8600000, guid: 471b8f6d1a522b54a82627952924a6c8, type: 2}
+  snapShot2: {fileID: 8600000, guid: c90d517ed1c85e74ab4665a7ab5f7188, type: 2}
   draggablePiece: {fileID: 0}
   draggablePieceOffset: {x: 0, y: 0, z: 0}
 --- !u!4 &498238286

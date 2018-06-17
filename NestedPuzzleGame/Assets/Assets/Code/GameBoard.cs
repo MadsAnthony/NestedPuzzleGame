@@ -8,7 +8,6 @@ public class GameBoard : MonoBehaviour {
 	[SerializeField] private Camera puzzleCamera;
 	[SerializeField] private RenderTexture puzzleCameraTexture;
 	[SerializeField] private Texture goalTexture;
-	[SerializeField] private Texture snapShot;
 
 	public Piece draggablePiece;
 	public Vector3 draggablePieceOffset;
@@ -17,20 +16,19 @@ public class GameBoard : MonoBehaviour {
 	private Vector3 startOffset = new Vector3(-1,0,0);
 	private RenderTexture puzzleTexture;
 
-	private GameObject pivot1;
-	private GameObject pivot2;
-
-	private List<Piece> pieces1  = new List<Piece>();
-	private List<Piece> pieces2  = new List<Piece>();
+	private List<PuzzlePivot> puzzlePivots = new List<PuzzlePivot>();
+	private PuzzlePivot activePuzzlePivot;
 	void Start () {
 		Application.targetFrameRate = 60;
 
-		pivot1 = new GameObject ();
-		SpawnPieces (pivot1, pieces1, goalTexture);
-		ScramblePiecePosition (pieces1);
+		var puzzlePivot = new PuzzlePivot ();
+		puzzlePivots.Add (puzzlePivot);
+		SpawnPieces (puzzlePivot, goalTexture);
+		ScramblePiecePosition (puzzlePivot.pieces);
+		StartCoroutine (SpawnExtraPivots(2));
 	}
 
-	private void SpawnPieces(GameObject pivot, List<Piece> pieces, Texture texture) {
+	private void SpawnPieces(PuzzlePivot pivot, Texture texture) {
 		for (int i = 0; i < 2; i++) {
 			for (int j = 0; j < 3; j++) {
 				var id = i.ToString () + j.ToString ();
@@ -43,8 +41,8 @@ public class GameBoard : MonoBehaviour {
 				pieceObject.gameBoard = this;
 				pieceObject.GetComponent<MeshRenderer>().material.SetTextureOffset("_MainTex", new Vector2(i*0.5f,j*0.33f));
 				pieceObject.GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex", texture);
-				pieceObject.transform.parent = pivot.transform;
-				pieces.Add (pieceObject);
+				pieceObject.transform.parent = pivot.pivot.transform;
+				pivot.pieces.Add (pieceObject);
 			}
 		}
 	}
@@ -57,17 +55,29 @@ public class GameBoard : MonoBehaviour {
 		}
 	}
 
-	int counter = 0;
-	void Update() {
-		counter++;
-		if (counter == 5) {
-			pivot1.SetActive (false);
-			Graphics.CopyTexture (puzzleCameraTexture, snapShot);
-			pivot2 = new GameObject ();
-			SpawnPieces (pivot2, pieces2, snapShot);
-			ScramblePiecePosition (pieces2);
+	private IEnumerator SpawnExtraPivots(int numberOfPivots) {
+		// Wait 3 frames
+		for (int i = 0; i < 3; i++) {
+			yield return null;
 		}
 
+		for (int i = 0; i < numberOfPivots; i++) {
+			SpawnExtraPivot ();
+			yield return null;
+		}
+	}
+
+	private void SpawnExtraPivot() {
+		HideAllPuzzlePivots ();
+		var snapShot = new Texture2D (170, 256,TextureFormat.ARGB32,false);
+		Graphics.CopyTexture (puzzleCameraTexture, snapShot);
+		var puzzlePivot = new PuzzlePivot ();
+		puzzlePivots.Add (puzzlePivot);
+		SpawnPieces (puzzlePivot, snapShot);
+		ScramblePiecePosition (puzzlePivot.pieces);
+		activePuzzlePivot = puzzlePivot;
+	}
+	void Update() {
 		if (draggablePiece != null) {
 			var mousePos = Camera.main.ScreenToWorldPoint (Input.mousePosition);
 			draggablePiece.transform.position = new Vector3(mousePos.x,mousePos.y,draggablePiece.transform.position.z)+draggablePieceOffset;
@@ -83,9 +93,30 @@ public class GameBoard : MonoBehaviour {
 
 			var isDone = CheckForWin ();
 			if (isDone) {
-				pivot1.SetActive (true);
-				pivot2.SetActive (false);
+				var nextPuzzlePivot = GetNextPuzzlePivot();
+				if (nextPuzzlePivot != null) {
+					activePuzzlePivot = nextPuzzlePivot;
+					HideAllPuzzlePivots ();
+					activePuzzlePivot.pivot.SetActive (true);
+				}
 			}
+		}
+	}
+
+	private PuzzlePivot GetNextPuzzlePivot() {
+		PuzzlePivot result = null;
+		foreach (var puzzlePivot in puzzlePivots) {
+			if (puzzlePivot == activePuzzlePivot) {
+				return result;
+			}
+			result = puzzlePivot;
+		}
+		return result;
+	}
+
+	private void HideAllPuzzlePivots() {
+		foreach (var puzzlePivot in puzzlePivots) {
+			puzzlePivot.pivot.SetActive (false);
 		}
 	}
 
@@ -100,7 +131,7 @@ public class GameBoard : MonoBehaviour {
 	}
 
 	private bool CheckForWin() {
-		foreach(var piece in pieces2) {
+		foreach(var piece in activePuzzlePivot.pieces) {
 			var snapablePoint = GetPointWithinRadius (piece.transform.position, 0.2f);
 			if (snapablePoint == null || snapablePoint.id != piece.id) {
 				return false;
@@ -116,6 +147,15 @@ public class GameBoard : MonoBehaviour {
 		public SnapablePoint(string id, Vector3 position) {
 			this.id = id;
 			this.position = position;
+		}
+	}
+
+	public class PuzzlePivot {
+		public GameObject pivot;
+		public List<Piece> pieces = new List<Piece>();
+
+		public PuzzlePivot() {
+			pivot = new GameObject();
 		}
 	}
 }
