@@ -5,11 +5,13 @@ using UnityEngine.SceneManagement;
 using Opencoding.CommandHandlerSystem;
 
 public class GameBoard : MonoBehaviour {
-
+	
 	[SerializeField] private GameObject piece;
 	[SerializeField] private Camera puzzleCamera;
 	[SerializeField] private RenderTexture puzzleCameraTexture;
 	[SerializeField] private Texture goalTexture;
+	[SerializeField] private GameObject zoomOutPivot;
+	[SerializeField] private AnimationCurve easeInOutCurve;
 
 	public Piece draggablePiece;
 	public Vector3 draggablePieceOffset;
@@ -23,9 +25,10 @@ public class GameBoard : MonoBehaviour {
 	void Start () {
 		Application.targetFrameRate = 60;
 
-		var puzzlePivot = new PuzzlePivot ();
+		zoomOutPivot.SetActive (false);
+		var puzzlePivot = new PuzzlePivot (gameObject);
 		puzzlePivots.Add (puzzlePivot);
-		SpawnPieces (puzzlePivot, goalTexture);
+		SpawnPieces (puzzlePivot, goalTexture, new Vector2 (0.5f*0.5f,0.33f*0.33f));
 		ScramblePiecePosition (puzzlePivot.pieces);
 		activePuzzlePivot = puzzlePivot;
 		StartCoroutine (SpawnExtraPivots(NumberOfPivots));
@@ -33,7 +36,7 @@ public class GameBoard : MonoBehaviour {
 		CommandHandlers.RegisterCommandHandlers(typeof(GameBoard));
 	}
 
-	private void SpawnPieces(PuzzlePivot pivot, Texture texture) {
+	private void SpawnPieces(PuzzlePivot pivot, Texture texture, Vector2 scale) {
 		for (int i = 0; i < 2; i++) {
 			for (int j = 0; j < 3; j++) {
 				var id = i.ToString () + j.ToString ();
@@ -44,7 +47,9 @@ public class GameBoard : MonoBehaviour {
 				pieceObject.transform.position = new Vector3 (i+0.2f,j*2+0.2f,0)+startOffset;
 				pieceObject.id = id;
 				pieceObject.gameBoard = this;
-				pieceObject.GetComponent<MeshRenderer>().material.SetTextureOffset("_MainTex", new Vector2(i*0.5f,j*0.33f));
+
+				pieceObject.GetComponent<MeshRenderer> ().material.SetTextureScale ("_MainTex",scale);
+				pieceObject.GetComponent<MeshRenderer>().material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
 				pieceObject.GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex", texture);
 				pieceObject.transform.parent = pivot.pivot.transform;
 				pivot.pieces.Add (pieceObject);
@@ -76,9 +81,9 @@ public class GameBoard : MonoBehaviour {
 		HideAllPuzzlePivots ();
 		var snapShot = new Texture2D (170, 256,TextureFormat.ARGB32,false);
 		Graphics.CopyTexture (puzzleCameraTexture, snapShot);
-		var puzzlePivot = new PuzzlePivot ();
+		var puzzlePivot = new PuzzlePivot (gameObject);
 		puzzlePivots.Add (puzzlePivot);
-		SpawnPieces (puzzlePivot, snapShot);
+		SpawnPieces (puzzlePivot, snapShot, new Vector2 (0.5f,0.33f));
 		ScramblePiecePosition (puzzlePivot.pieces);
 		activePuzzlePivot = puzzlePivot;
 	}
@@ -104,6 +109,8 @@ public class GameBoard : MonoBehaviour {
 					activePuzzlePivot = nextPuzzlePivot;
 					HideAllPuzzlePivots ();
 					activePuzzlePivot.pivot.SetActive (true);
+				} else {
+					StartCoroutine (ZoomOut ());
 				}
 			}
 		}
@@ -146,6 +153,42 @@ public class GameBoard : MonoBehaviour {
 		return true;
 	}
 
+	public IEnumerator ZoomOut() {
+		zoomOutPivot.SetActive (true);
+		yield return new WaitForSeconds (0.5f);
+		StartCoroutine(AnimateTo (gameObject, new Vector3 (-1.5f,-3,0)));
+		StartCoroutine(ScaleTo (gameObject, new Vector3 (0.5f,0.5f,0)));
+	}
+
+	public void ZoomIn(Vector3 pos) {
+		StartCoroutine(AnimateTo (gameObject, new Vector3(-pos.x,pos.y,gameObject.transform.position.z)));
+		StartCoroutine(ScaleTo (gameObject, new Vector3 (1f,1f,0)));
+	}
+
+	private IEnumerator AnimateTo(GameObject gameObject, Vector3 endPosition) {
+		var startPosition = gameObject.transform.position;
+		float time = 0;
+		while (time < 1) {
+			time += 0.01f;
+			var t = easeInOutCurve.Evaluate (time);
+			gameObject.transform.position = (startPosition * (1 - t)) + endPosition * t;
+			yield return null;
+		}
+	}
+
+	private IEnumerator ScaleTo(GameObject gameObject, Vector3 endScale) {
+		var startScale = gameObject.transform.localScale;
+		startScale.z = 1;
+		endScale.z = 1;
+		float time = 0;
+		while (time < 1) {
+			time += 0.01f;
+			var t = easeInOutCurve.Evaluate (time);
+			gameObject.transform.localScale = (startScale * (1 - t)) + endScale * t;
+			yield return null;
+		}
+	}
+
 	public class SnapablePoint {
 		public readonly string id;
 		public readonly Vector3 position;
@@ -160,8 +203,9 @@ public class GameBoard : MonoBehaviour {
 		public GameObject pivot;
 		public List<Piece> pieces = new List<Piece>();
 
-		public PuzzlePivot() {
+		public PuzzlePivot(GameObject parent) {
 			pivot = new GameObject();
+			pivot.transform.parent = parent.transform;
 		}
 	}
 
