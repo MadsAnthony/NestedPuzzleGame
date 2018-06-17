@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using Opencoding.CommandHandlerSystem;
 
 public class GameBoard : MonoBehaviour {
 
@@ -25,7 +27,10 @@ public class GameBoard : MonoBehaviour {
 		puzzlePivots.Add (puzzlePivot);
 		SpawnPieces (puzzlePivot, goalTexture);
 		ScramblePiecePosition (puzzlePivot.pieces);
-		StartCoroutine (SpawnExtraPivots(2));
+		activePuzzlePivot = puzzlePivot;
+		StartCoroutine (SpawnExtraPivots(NumberOfPivots));
+
+		CommandHandlers.RegisterCommandHandlers(typeof(GameBoard));
 	}
 
 	private void SpawnPieces(PuzzlePivot pivot, Texture texture) {
@@ -77,6 +82,7 @@ public class GameBoard : MonoBehaviour {
 		ScramblePiecePosition (puzzlePivot.pieces);
 		activePuzzlePivot = puzzlePivot;
 	}
+
 	void Update() {
 		if (draggablePiece != null) {
 			var mousePos = Camera.main.ScreenToWorldPoint (Input.mousePosition);
@@ -157,5 +163,21 @@ public class GameBoard : MonoBehaviour {
 		public PuzzlePivot() {
 			pivot = new GameObject();
 		}
+	}
+
+	private static void ReloadLevelInternal() {
+		SceneManager.LoadScene ("Boot");
+	}
+
+	[CommandHandler(Description="Will reload the level.")]
+	private static void ReloadLevel() {
+		ReloadLevelInternal ();
+	}
+
+	private static int NumberOfPivots = 1;
+	[CommandHandler(Description="Determine how many layers should be used for a puzzle.")]
+	private static void SetNumberOfPivots(int numberOfPivots) {
+		NumberOfPivots = numberOfPivots;
+		ReloadLevelInternal ();
 	}
 }
