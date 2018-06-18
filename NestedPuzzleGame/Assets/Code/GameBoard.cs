@@ -5,8 +5,6 @@ using UnityEngine.SceneManagement;
 using Opencoding.CommandHandlerSystem;
 
 public class GameBoard : MonoBehaviour {
-	
-	[SerializeField] private GameObject zoomOutPivot;
 	[SerializeField] private SubPuzzle subPuzzlePrefab;
 	[SerializeField] private AnimationCurve easeInOutCurve;
 
@@ -17,31 +15,33 @@ public class GameBoard : MonoBehaviour {
 
 	private SubPuzzle activeSubPuzzle;
 
+	private List<SubPuzzle> subPuzzles = new List<SubPuzzle>();
+
 	void Start () {
 		Application.targetFrameRate = 60;
 		CommandHandlers.RegisterCommandHandlers(typeof(GameBoard));
 
-		zoomOutPivot.SetActive (false);
+		for (int x = 0; x < 2; x++) {
+			for (int y = 0; y < 3; y++) {
+				var subPuzzle = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();
+				subPuzzle.name = "SubPuzzle" + x + y;
+				subPuzzle.Initialize(this, new Vector2(x*0.5f,y*0.33f));
+				subPuzzle.transform.parent = transform;
+				subPuzzle.transform.localPosition = new Vector3 (x*5+1, y*7, 0);
+				subPuzzle.SpawnSubPuzzle ();
+				subPuzzles.Add (subPuzzle);
+			}
+		}
 
-
-		var subPuzzle = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();
-		subPuzzle.SetGameBoard(this);
-		subPuzzle.transform.parent = transform;
-		subPuzzle.transform.localPosition = new Vector3 (1, 0, 0);
-		subPuzzle.SpawnSubPuzzle ();
-		activeSubPuzzle = subPuzzle;
-		subPuzzle.ActivateSubPuzzle ();
-
-		var subPuzzle2 = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();
-		subPuzzle2.SetGameBoard(this);
-		subPuzzle2.transform.parent = transform;
-		subPuzzle2.transform.localPosition = new Vector3 (6, 0, 0);
-		subPuzzle2.SpawnSubPuzzle ();
+		SetActiveSubPuzzle (subPuzzles[0]);
 	}
 
-	public void SetActiveSubPuzzle(SubPuzzle subPuzzle) {
-		activeSubPuzzle = subPuzzle;
-		activeSubPuzzle.ActivateSubPuzzle ();
+	public void SetActiveSubPuzzle(SubPuzzle newActiveSubPuzzle) {
+		foreach (var subPuzzle in subPuzzles) {
+			subPuzzle.DeactivateSubPuzzle();
+		}
+		activeSubPuzzle = newActiveSubPuzzle;
+		newActiveSubPuzzle.ActivateSubPuzzle();
 	}
 
 	void Update() {
@@ -69,14 +69,13 @@ public class GameBoard : MonoBehaviour {
 	}
 
 	public IEnumerator ZoomOut() {
-		zoomOutPivot.SetActive (true);
 		yield return new WaitForSeconds (0.5f);
 		StartCoroutine(AnimateTo (gameObject, new Vector3 (-1.5f,-3,0)));
 		StartCoroutine(ScaleTo (gameObject, new Vector3 (0.5f,0.5f,0)));
 	}
 
 	public void ZoomIn(Vector3 pos) {
-		StartCoroutine(AnimateTo (gameObject, new Vector3(-pos.x,pos.y,gameObject.transform.position.z)));
+		StartCoroutine(AnimateTo (gameObject, new Vector3(-pos.x,-pos.y,gameObject.transform.position.z)));
 		StartCoroutine(ScaleTo (gameObject, new Vector3 (1f,1f,0)));
 	}
 

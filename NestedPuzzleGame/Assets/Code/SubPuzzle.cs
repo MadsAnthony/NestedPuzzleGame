@@ -14,6 +14,7 @@ public class SubPuzzle : MonoBehaviour {
 	public Piece draggablePiece;
 	public Vector3 draggablePieceOffset;
 	private GameBoard gameBoard;
+	private Vector2 pictureVector;
 
 	private List<SnapablePoint> snapablePoints = new List<SnapablePoint>();
 	private RenderTexture puzzleTexture;
@@ -25,10 +26,11 @@ public class SubPuzzle : MonoBehaviour {
 		puzzleCamera.targetTexture = puzzleCameraTexture;
 	}
 
-	public void SetGameBoard(GameBoard gameBoard) {
+	public void Initialize(GameBoard gameBoard, Vector2 pictureVector) {
 		this.gameBoard = gameBoard;
 		subPuzzleButton.gameBoard = gameBoard;
 		subPuzzleButton.subPuzzle = this;
+		this.pictureVector = pictureVector;
 	}
 
 	public void ActivateSubPuzzle() {
@@ -46,13 +48,13 @@ public class SubPuzzle : MonoBehaviour {
 
 		var puzzlePivot = new PuzzlePivot (pivot);
 		puzzlePivots.Add (puzzlePivot);
-		SpawnPieces (puzzlePivot, goalTexture, new Vector2 (0.5f*0.5f,0.33f*0.33f));
+		SpawnPieces (puzzlePivot, goalTexture, new Vector2 (0.5f*0.5f,0.33f*0.33f), pictureVector);
 		ScramblePiecePosition (puzzlePivot.pieces);
 		activePuzzlePivot = puzzlePivot;
 		StartCoroutine (SpawnExtraPivots(pivot, GameBoard.NumberOfPivots));
 	}
 
-	private void SpawnPieces(PuzzlePivot pivot, Texture texture, Vector2 scale) {
+	private void SpawnPieces(PuzzlePivot pivot, Texture texture, Vector2 scale, Vector2 pictureVector) {
 		for (int i = 0; i < 2; i++) {
 			for (int j = 0; j < 3; j++) {
 				var id = i.ToString () + j.ToString ();
@@ -66,7 +68,7 @@ public class SubPuzzle : MonoBehaviour {
 				pieceObject.gameBoard = gameBoard;
 
 				pieceObject.GetComponent<MeshRenderer> ().material.SetTextureScale ("_MainTex",scale);
-				pieceObject.GetComponent<MeshRenderer>().material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
+				pieceObject.GetComponent<MeshRenderer>().material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y)+pictureVector);
 				pieceObject.GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex", texture);
 
 				pivot.pieces.Add (pieceObject);
@@ -100,7 +102,7 @@ public class SubPuzzle : MonoBehaviour {
 		Graphics.CopyTexture (puzzleCameraTexture, snapShot);
 		var puzzlePivot = new PuzzlePivot (pivot);
 		puzzlePivots.Add (puzzlePivot);
-		SpawnPieces (puzzlePivot, snapShot, new Vector2 (0.5f,0.33f));
+		SpawnPieces (puzzlePivot, snapShot, new Vector2 (0.5f,0.33f), Vector2.zero);
 		ScramblePiecePosition (puzzlePivot.pieces);
 		activePuzzlePivot = puzzlePivot;
 	}
