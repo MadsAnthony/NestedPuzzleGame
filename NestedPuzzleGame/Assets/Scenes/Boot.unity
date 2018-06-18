@@ -252,7 +252,6 @@ GameObject:
   - component: {fileID: 1033336181}
   - component: {fileID: 1033336183}
   - component: {fileID: 1033336182}
-  - component: {fileID: 1033336184}
   m_Layer: 0
   m_Name: Quad
   m_TagString: Untagged
@@ -292,19 +291,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1033336180}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1033336184
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1033336180}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 238c0a0e19ae8974aabcf994c78e5015, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gameBoard: {fileID: 1402024528}
-  subPuzzle: {fileID: 0}
 --- !u!1 &1108821174
 GameObject:
   m_ObjectHideFlags: 0
@@ -345,7 +331,6 @@ GameObject:
   - component: {fileID: 1174026953}
   - component: {fileID: 1174026955}
   - component: {fileID: 1174026954}
-  - component: {fileID: 1174026956}
   m_Layer: 0
   m_Name: Quad
   m_TagString: Untagged
@@ -386,19 +371,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1174026952}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1174026956
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1174026952}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 238c0a0e19ae8974aabcf994c78e5015, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gameBoard: {fileID: 1402024528}
-  subPuzzle: {fileID: 0}
 --- !u!1 &1376702864
 GameObject:
   m_ObjectHideFlags: 0
