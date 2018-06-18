@@ -6,86 +6,42 @@ using Opencoding.CommandHandlerSystem;
 
 public class GameBoard : MonoBehaviour {
 	
-	[SerializeField] private GameObject piece;
-	[SerializeField] private Camera puzzleCamera;
-	[SerializeField] private RenderTexture puzzleCameraTexture;
-	[SerializeField] private Texture goalTexture;
 	[SerializeField] private GameObject zoomOutPivot;
+	[SerializeField] private SubPuzzle subPuzzlePrefab;
 	[SerializeField] private AnimationCurve easeInOutCurve;
 
 	public Piece draggablePiece;
 	public Vector3 draggablePieceOffset;
 
-	private List<SnapablePoint> snapablePoints = new List<SnapablePoint>();
-	private Vector3 startOffset = new Vector3(-1,0,0);
 	private RenderTexture puzzleTexture;
 
-	private List<PuzzlePivot> puzzlePivots = new List<PuzzlePivot>();
-	private PuzzlePivot activePuzzlePivot;
+	private SubPuzzle activeSubPuzzle;
+
 	void Start () {
 		Application.targetFrameRate = 60;
+		CommandHandlers.RegisterCommandHandlers(typeof(GameBoard));
 
 		zoomOutPivot.SetActive (false);
-		var puzzlePivot = new PuzzlePivot (gameObject);
-		puzzlePivots.Add (puzzlePivot);
-		SpawnPieces (puzzlePivot, goalTexture, new Vector2 (0.5f*0.5f,0.33f*0.33f));
-		ScramblePiecePosition (puzzlePivot.pieces);
-		activePuzzlePivot = puzzlePivot;
-		StartCoroutine (SpawnExtraPivots(NumberOfPivots));
 
-		CommandHandlers.RegisterCommandHandlers(typeof(GameBoard));
+
+		var subPuzzle = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();
+		subPuzzle.SetGameBoard(this);
+		subPuzzle.transform.parent = transform;
+		subPuzzle.transform.localPosition = new Vector3 (1, 0, 0);
+		subPuzzle.SpawnSubPuzzle ();
+		activeSubPuzzle = subPuzzle;
+		subPuzzle.ActivateSubPuzzle ();
+
+		var subPuzzle2 = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();
+		subPuzzle2.SetGameBoard(this);
+		subPuzzle2.transform.parent = transform;
+		subPuzzle2.transform.localPosition = new Vector3 (6, 0, 0);
+		subPuzzle2.SpawnSubPuzzle ();
 	}
 
-	private void SpawnPieces(PuzzlePivot pivot, Texture texture, Vector2 scale) {
-		for (int i = 0; i < 2; i++) {
-			for (int j = 0; j < 3; j++) {
-				var id = i.ToString () + j.ToString ();
-				var newSnapablePoint = new SnapablePoint (id, new Vector3 (i * 2, j * 2, 0) + startOffset);
-				snapablePoints.Add(newSnapablePoint);
-
-				var pieceObject = GameObject.Instantiate (piece).GetComponent<Piece>();
-				pieceObject.transform.position = new Vector3 (i+0.2f,j*2+0.2f,0)+startOffset;
-				pieceObject.id = id;
-				pieceObject.gameBoard = this;
-
-				pieceObject.GetComponent<MeshRenderer> ().material.SetTextureScale ("_MainTex",scale);
-				pieceObject.GetComponent<MeshRenderer>().material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
-				pieceObject.GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex", texture);
-				pieceObject.transform.parent = pivot.pivot.transform;
-				pivot.pieces.Add (pieceObject);
-			}
-		}
-	}
-
-	private void ScramblePiecePosition(List<Piece> pieces) {
-		foreach (var piece in pieces) {
-			var randomX = Random.Range (-100,100)*0.01f;
-			var randomY = Random.Range (0,400)*0.01f;
-			piece.transform.position = new Vector3 (randomX,randomY,piece.transform.position.z);
-		}
-	}
-
-	private IEnumerator SpawnExtraPivots(int numberOfPivots) {
-		// Wait 3 frames
-		for (int i = 0; i < 3; i++) {
-			yield return null;
-		}
-
-		for (int i = 0; i < numberOfPivots; i++) {
-			SpawnExtraPivot ();
-			yield return null;
-		}
-	}
-
-	private void SpawnExtraPivot() {
-		HideAllPuzzlePivots ();
-		var snapShot = new Texture2D (170, 256,TextureFormat.ARGB32,false);
-		Graphics.CopyTexture (puzzleCameraTexture, snapShot);
-		var puzzlePivot = new PuzzlePivot (gameObject);
-		puzzlePivots.Add (puzzlePivot);
-		SpawnPieces (puzzlePivot, snapShot, new Vector2 (0.5f,0.33f));
-		ScramblePiecePosition (puzzlePivot.pieces);
-		activePuzzlePivot = puzzlePivot;
+	public void SetActiveSubPuzzle(SubPuzzle subPuzzle) {
+		activeSubPuzzle = subPuzzle;
+		activeSubPuzzle.ActivateSubPuzzle ();
 	}
 
 	void Update() {
@@ -95,62 +51,21 @@ public class GameBoard : MonoBehaviour {
 		}
 
 		if (Input.GetMouseButtonUp (0) && (draggablePiece != null)) {
-			var snapablePoint = GetPointWithinRadius (draggablePiece.transform.position, 0.2f);
+			var snapablePoint = activeSubPuzzle.GetPointWithinRadius (draggablePiece.transform.localPosition, 0.2f);
 			if (snapablePoint != null) {
-				draggablePiece.transform.position = snapablePoint.position;
+				draggablePiece.transform.localPosition = snapablePoint.position;
 			}
 
 			draggablePiece = null;
 
-			var isDone = CheckForWin ();
+			var isDone = activeSubPuzzle.CheckForWin ();
 			if (isDone) {
-				var nextPuzzlePivot = GetNextPuzzlePivot();
-				if (nextPuzzlePivot != null) {
-					activePuzzlePivot = nextPuzzlePivot;
-					HideAllPuzzlePivots ();
-					activePuzzlePivot.pivot.SetActive (true);
-				} else {
+				var hasMorePuzzles = activeSubPuzzle.SetupNextPuzzlePivot ();
+				if (!hasMorePuzzles) {
 					StartCoroutine (ZoomOut ());
 				}
 			}
 		}
-	}
-
-	private PuzzlePivot GetNextPuzzlePivot() {
-		PuzzlePivot result = null;
-		foreach (var puzzlePivot in puzzlePivots) {
-			if (puzzlePivot == activePuzzlePivot) {
-				return result;
-			}
-			result = puzzlePivot;
-		}
-		return result;
-	}
-
-	private void HideAllPuzzlePivots() {
-		foreach (var puzzlePivot in puzzlePivots) {
-			puzzlePivot.pivot.SetActive (false);
-		}
-	}
-
-	private SnapablePoint GetPointWithinRadius(Vector3 point, float radius) {
-		foreach (var snapablePoint in snapablePoints) {
-			var dist = snapablePoint.position - point;
-			if (dist.magnitude < radius) {
-				return snapablePoint;
-			}
-		}
-		return null;
-	}
-
-	private bool CheckForWin() {
-		foreach(var piece in activePuzzlePivot.pieces) {
-			var snapablePoint = GetPointWithinRadius (piece.transform.position, 0.2f);
-			if (snapablePoint == null || snapablePoint.id != piece.id) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	public IEnumerator ZoomOut() {
@@ -189,26 +104,6 @@ public class GameBoard : MonoBehaviour {
 		}
 	}
 
-	public class SnapablePoint {
-		public readonly string id;
-		public readonly Vector3 position;
-
-		public SnapablePoint(string id, Vector3 position) {
-			this.id = id;
-			this.position = position;
-		}
-	}
-
-	public class PuzzlePivot {
-		public GameObject pivot;
-		public List<Piece> pieces = new List<Piece>();
-
-		public PuzzlePivot(GameObject parent) {
-			pivot = new GameObject();
-			pivot.transform.parent = parent.transform;
-		}
-	}
-
 	private static void ReloadLevelInternal() {
 		SceneManager.LoadScene ("Boot");
 	}
@@ -218,7 +113,7 @@ public class GameBoard : MonoBehaviour {
 		ReloadLevelInternal ();
 	}
 
-	private static int NumberOfPivots = 1;
+	public static int NumberOfPivots = 1;
 	[CommandHandler(Description="Determine how many layers should be used for a puzzle.")]
 	private static void SetNumberOfPivots(int numberOfPivots) {
 		NumberOfPivots = numberOfPivots;

@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SubPuzzle : MonoBehaviour {
-	[SerializeField] private GameBoard gameBoard;
+public class SubPuzzleButton : MonoBehaviour {
+	public GameBoard gameBoard;
+	public SubPuzzle subPuzzle;
 
 	private bool toggle = true;
 	void OnMouseDown() {
 		if (toggle) {
-			gameBoard.ZoomIn (transform.localPosition);
+			gameBoard.ZoomIn (subPuzzle.transform.localPosition);
+			gameBoard.SetActiveSubPuzzle (subPuzzle);
 		} else {
 			gameBoard.StartCoroutine (gameBoard.ZoomOut ());
 		}

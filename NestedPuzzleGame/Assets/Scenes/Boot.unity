@@ -167,11 +167,11 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 100442531}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 2, z: -5}
+  m_LocalPosition: {x: 0.84548974, y: 1.3144464, z: -5}
   m_LocalScale: {x: 3.2624977, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_Father: {fileID: 1402024527}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &603814445
 GameObject:
@@ -189,7 +189,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &603814446
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -300,10 +300,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1033336180}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e496287db4e19a43b560cd2847c3a25, type: 3}
+  m_Script: {fileID: 11500000, guid: 238c0a0e19ae8974aabcf994c78e5015, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   gameBoard: {fileID: 1402024528}
+  subPuzzle: {fileID: 0}
 --- !u!1 &1108821174
 GameObject:
   m_ObjectHideFlags: 0
@@ -332,7 +333,7 @@ Transform:
   - {fileID: 1033336181}
   - {fileID: 1174026953}
   m_Father: {fileID: 1402024527}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1174026952
 GameObject:
@@ -393,10 +394,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1174026952}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e496287db4e19a43b560cd2847c3a25, type: 3}
+  m_Script: {fileID: 11500000, guid: 238c0a0e19ae8974aabcf994c78e5015, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   gameBoard: {fileID: 1402024528}
+  subPuzzle: {fileID: 0}
 --- !u!1 &1376702864
 GameObject:
   m_ObjectHideFlags: 0
@@ -513,9 +515,10 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 603814448}
+  - {fileID: 100442536}
   - {fileID: 1108821175}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1402024528
 MonoBehaviour:
@@ -528,11 +531,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 598497693128be1439ec4c10754588fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  piece: {fileID: 1899222452050642, guid: 28b188a0d4669fb44a3a5eea28c03d50, type: 2}
-  puzzleCamera: {fileID: 100442535}
-  puzzleCameraTexture: {fileID: 8400000, guid: 66b85f48c5484c34881dea0d3b42f335, type: 2}
-  goalTexture: {fileID: 2800000, guid: 6d313820a7a9f8042a924f35b7007706, type: 3}
   zoomOutPivot: {fileID: 1108821174}
+  subPuzzlePrefab: {fileID: 114841084639144672, guid: 4711edf4ea0d13847b3996ba26fec55a,
+    type: 2}
   easeInOutCurve:
     serializedVersion: 2
     m_Curve:
@@ -611,7 +612,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2026290805
 Transform:
   m_ObjectHideFlags: 0
