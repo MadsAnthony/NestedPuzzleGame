@@ -5,35 +5,50 @@ using UnityEngine.SceneManagement;
 using Opencoding.CommandHandlerSystem;
 
 public class GameBoard : MonoBehaviour {
-	[SerializeField] private SubPuzzle subPuzzlePrefab;
+	[SerializeField] public SubPuzzle subPuzzlePrefab;
 	[SerializeField] private AnimationCurve easeInOutCurve;
+	[SerializeField] private GameObject goalPicture;
+	[SerializeField] private Texture goalTexture;
 
 	public Piece draggablePiece;
 	public Vector3 draggablePieceOffset;
 
 	private RenderTexture puzzleTexture;
 
-	private SubPuzzle activeSubPuzzle;
-
+	public SubPuzzle activeSubPuzzle;
+	private GameObject goalPictureObject;
 	private List<SubPuzzle> subPuzzles = new List<SubPuzzle>();
 
 	void Start () {
 		Application.targetFrameRate = 60;
 		CommandHandlers.RegisterCommandHandlers(typeof(GameBoard));
 
-		for (int x = 0; x < 2; x++) {
-			for (int y = 0; y < 3; y++) {
-				var subPuzzle = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();
-				subPuzzle.name = "SubPuzzle" + x + y;
-				subPuzzle.Initialize(this, new Vector2(x*0.5f,y*0.33f));
-				subPuzzle.transform.parent = transform;
-				subPuzzle.transform.localPosition = new Vector3 (x*5+1, y*7, 0);
-				subPuzzle.SpawnSubPuzzle ();
-				subPuzzles.Add (subPuzzle);
-			}
+		StartCoroutine (SpawnInitialSubPuzzle ());
+	}
+
+	private IEnumerator SpawnInitialSubPuzzle() {
+		var scale = 2;
+		goalPictureObject = GameObject.Instantiate (goalPicture);
+		goalPictureObject.transform.parent = transform;
+		goalPictureObject.transform.localScale = scale*new Vector3 (2,3,goalPictureObject.transform.localScale.z);
+		goalPictureObject.transform.localPosition = new Vector3 (0,1.5f,-1);
+		goalPictureObject.GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex", goalTexture);
+
+		var subPuzzle = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();
+		subPuzzle.transform.parent = transform;
+		subPuzzle.Initialize(this, new Vector2(0,0),0);
+		subPuzzle.transform.parent = transform;
+		subPuzzle.transform.localPosition = new Vector3 (0, 0, 0);
+		subPuzzle.SpawnSubPuzzle ();
+
+
+		// Wait 3 frames
+		for (int i = 0; i < 3; i++) {
+			yield return null;
 		}
 
-		SetActiveSubPuzzle (subPuzzles[0]);
+		SetActiveSubPuzzle (subPuzzle);
+		goalPictureObject.SetActive (false);
 	}
 
 	public void SetActiveSubPuzzle(SubPuzzle newActiveSubPuzzle) {
@@ -62,7 +77,13 @@ public class GameBoard : MonoBehaviour {
 			if (isDone) {
 				var hasMorePuzzles = activeSubPuzzle.SetupNextPuzzlePivot ();
 				if (!hasMorePuzzles) {
-					StartCoroutine (ZoomOut ());
+					activeSubPuzzle.WasDone ();
+					if (activeSubPuzzle.parentSubPuzzle != null) {
+						StartCoroutine (ZoomOut ());
+					} else {
+						goalPictureObject.SetActive (true);
+					}
+					activeSubPuzzle = activeSubPuzzle.parentSubPuzzle;
 				}
 			}
 		}
@@ -70,13 +91,13 @@ public class GameBoard : MonoBehaviour {
 
 	public IEnumerator ZoomOut() {
 		yield return new WaitForSeconds (0.5f);
-		StartCoroutine(AnimateTo (gameObject, new Vector3 (-1.5f,-3,0)));
-		StartCoroutine(ScaleTo (gameObject, new Vector3 (0.5f,0.5f,0)));
+		StartCoroutine(AnimateTo (gameObject, new Vector3 (0,-1f)));
+		StartCoroutine(ScaleTo (gameObject, gameObject.transform.localScale*0.5f));
 	}
 
 	public void ZoomIn(Vector3 pos) {
-		StartCoroutine(AnimateTo (gameObject, new Vector3(-pos.x,-pos.y,gameObject.transform.position.z)));
-		StartCoroutine(ScaleTo (gameObject, new Vector3 (1f,1f,0)));
+		StartCoroutine(AnimateTo (gameObject, new Vector3(pos.x,pos.y,gameObject.transform.position.z)));
+		StartCoroutine(ScaleTo (gameObject, gameObject.transform.localScale*2));
 	}
 
 	private IEnumerator AnimateTo(GameObject gameObject, Vector3 endPosition) {
@@ -113,9 +134,16 @@ public class GameBoard : MonoBehaviour {
 	}
 
 	public static int NumberOfPivots = 1;
-	[CommandHandler(Description="Determine how many layers should be used for a puzzle.")]
+	[CommandHandler(Description="Determine how deep each puzzle is.")]
 	private static void SetNumberOfPivots(int numberOfPivots) {
 		NumberOfPivots = numberOfPivots;
+		ReloadLevelInternal ();
+	}
+
+	public static int NumberOfLayers = 1;
+	[CommandHandler(Description="Determine how wide each puzzle is.")]
+	private static void SetNumberOfLayers(int numberOfLayers) {
+		NumberOfLayers = numberOfLayers;
 		ReloadLevelInternal ();
 	}
 }

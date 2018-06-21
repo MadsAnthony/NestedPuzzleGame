@@ -389,6 +389,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameBoard: {fileID: 114877716526081346}
+  subPuzzle: {fileID: 0}
 --- !u!114 &114877716526081346
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -400,11 +401,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 598497693128be1439ec4c10754588fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  piece: {fileID: 1899222452050642, guid: 28b188a0d4669fb44a3a5eea28c03d50, type: 2}
-  puzzleCamera: {fileID: 20098805038810092}
-  puzzleCameraTexture: {fileID: 8400000, guid: 66b85f48c5484c34881dea0d3b42f335, type: 2}
-  goalTexture: {fileID: 2800000, guid: 6d313820a7a9f8042a924f35b7007706, type: 3}
-  zoomOutPivot: {fileID: 1779756041639934}
+  subPuzzlePrefab: {fileID: 114841084639144672, guid: 4711edf4ea0d13847b3996ba26fec55a,
+    type: 2}
   easeInOutCurve:
     serializedVersion: 2
     m_Curve:
@@ -423,8 +421,11 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 0
+  goalPicture: {fileID: 0}
+  goalTexture: {fileID: 2800000, guid: 6d313820a7a9f8042a924f35b7007706, type: 3}
   draggablePiece: {fileID: 0}
   draggablePieceOffset: {x: 0, y: 0, z: 0}
+  activeSubPuzzle: {fileID: 0}
 --- !u!114 &114965788653702652
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -437,3 +438,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameBoard: {fileID: 114877716526081346}
+  subPuzzle: {fileID: 0}

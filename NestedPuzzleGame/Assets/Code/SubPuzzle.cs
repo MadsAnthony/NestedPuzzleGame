@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public class SubPuzzle : MonoBehaviour {
@@ -21,16 +22,23 @@ public class SubPuzzle : MonoBehaviour {
 
 	private List<PuzzlePivot> puzzlePivots = new List<PuzzlePivot>();
 	private PuzzlePivot activePuzzlePivot;
+
+	private SubPuzzle activeSubPuzzle;
+	private List<SubPuzzle> subPuzzles = new List<SubPuzzle>();
+	public SubPuzzle parentSubPuzzle;
+
+	private int subPuzzleLayer = 0;
 	void Start () {
 		puzzleCameraTexture = new RenderTexture (170, 256, 24, RenderTextureFormat.ARGB32);
 		puzzleCamera.targetTexture = puzzleCameraTexture;
 	}
 
-	public void Initialize(GameBoard gameBoard, Vector2 pictureVector) {
+	public void Initialize(GameBoard gameBoard, Vector2 pictureVector, int layer) {
 		this.gameBoard = gameBoard;
 		subPuzzleButton.gameBoard = gameBoard;
 		subPuzzleButton.subPuzzle = this;
 		this.pictureVector = pictureVector;
+		subPuzzleLayer = layer;
 	}
 
 	public void ActivateSubPuzzle() {
@@ -45,12 +53,6 @@ public class SubPuzzle : MonoBehaviour {
 		var pivot = new GameObject ();
 		pivot.transform.parent = background.transform;
 		pivot.transform.localPosition = new Vector3(0,0,0);
-
-		var puzzlePivot = new PuzzlePivot (pivot);
-		puzzlePivots.Add (puzzlePivot);
-		SpawnPieces (puzzlePivot, goalTexture, new Vector2 (0.5f*0.5f,0.33f*0.33f), pictureVector);
-		ScramblePiecePosition (puzzlePivot.pieces);
-		activePuzzlePivot = puzzlePivot;
 		StartCoroutine (SpawnExtraPivots(pivot, GameBoard.NumberOfPivots));
 	}
 
@@ -78,9 +80,20 @@ public class SubPuzzle : MonoBehaviour {
 
 	private void ScramblePiecePosition(List<Piece> pieces) {
 		foreach (var piece in pieces) {
-			var randomX = Random.Range (-100,100)*0.01f;
-			var randomY = Random.Range (-200,200)*0.01f;
+			var randomX = UnityEngine.Random.Range (-100,100)*0.01f;
+			var randomY = UnityEngine.Random.Range (-200,200)*0.01f;
 			piece.transform.localPosition = new Vector3 (randomX,randomY,piece.transform.position.z);
+		}
+	}
+
+	private void ArrangePiecePosition(List<Piece> pieces) {
+		var offset = new Vector3 (-1.5f,-3,0);
+		int i = 0;
+		foreach (var piece in pieces) {
+			var x = i%2;
+			var y = Mathf.RoundToInt(i/2);
+			piece.transform.localPosition = new Vector3 (x*3,y*3.3f,piece.transform.position.z)+offset;
+			i += 1;
 		}
 	}
 
@@ -94,6 +107,67 @@ public class SubPuzzle : MonoBehaviour {
 			SpawnExtraPivot (pivot);
 			yield return null;
 		}
+		if (subPuzzleLayer < GameBoard.NumberOfLayers) {
+			ArrangePiecePosition (activePuzzlePivot.pieces);
+
+			gameBoard.transform.localScale = new Vector3 (gameBoard.transform.localScale.x * 2f, gameBoard.transform.localScale.y * 2f, gameBoard.transform.localScale.z);
+
+			var dist = gameBoard.transform.position - activePuzzlePivot.pieces [0].gameObject.transform.position;
+			gameBoard.transform.position += dist + new Vector3 (0, 1.5f, 0);
+
+			foreach (var piece in activePuzzlePivot.pieces) {
+				var subPuzzle = GameObject.Instantiate (gameBoard.subPuzzlePrefab).GetComponent<SubPuzzle> ();
+				subPuzzle.Initialize (gameBoard, new Vector2 (0, 0), subPuzzleLayer + 1);
+				subPuzzle.transform.parent = piece.transform.parent;
+				subPuzzle.transform.localPosition = piece.transform.localPosition+new Vector3(0,-0.5f,0);
+				subPuzzle.parentSubPuzzle = this;
+				subPuzzle.SpawnSubPuzzle ();
+				subPuzzle.completedSubPuzzle += () => {
+					piece.gameObject.SetActive(true);
+
+					if (AlllSubPuzzlesComplete()) {
+						background.GetComponent<MeshRenderer> ().enabled = true;
+					}
+				};
+				subPuzzles.Add (subPuzzle);
+			}
+
+			// Wait 3 frames
+			for (int i = 0; i < 3; i++) {
+				yield return null;
+			}
+			foreach (var piece in activePuzzlePivot.pieces) {
+				piece.gameObject.SetActive (false);
+			}
+			background.GetComponent<MeshRenderer> ().enabled = false;
+			SetActiveSubPuzzle (subPuzzles [0]);
+		}
+	}
+
+	private bool AlllSubPuzzlesComplete() {
+		foreach (var subPuzzle in subPuzzles) {
+			if (subPuzzle.gameObject.activeSelf) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public Action completedSubPuzzle;
+	public void WasDone() {
+		gameObject.SetActive (false);
+		if (completedSubPuzzle != null) {
+			completedSubPuzzle ();
+		}
+	}
+
+	private void SetActiveSubPuzzle(SubPuzzle newActiveSubPuzzle) {
+		foreach (var subPuzzle in subPuzzles) {
+			subPuzzle.DeactivateSubPuzzle();
+		}
+		gameBoard.activeSubPuzzle = newActiveSubPuzzle;
+		activeSubPuzzle = newActiveSubPuzzle;
+		newActiveSubPuzzle.ActivateSubPuzzle();
 	}
 
 	private void SpawnExtraPivot(GameObject pivot) {
