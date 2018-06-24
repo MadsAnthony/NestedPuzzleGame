@@ -8,6 +8,7 @@ public class SubPuzzle : MonoBehaviour {
 	[SerializeField] private Camera puzzleCamera;
 	[SerializeField] private Texture goalTexture;
 	[SerializeField] private GameObject background;
+	[SerializeField] private GameObject backgroundQuad;
 	[SerializeField] private SubPuzzleButton subPuzzleButton;
 
 	private RenderTexture puzzleCameraTexture;
@@ -53,10 +54,7 @@ public class SubPuzzle : MonoBehaviour {
 	}
 
 	public void SpawnSubPuzzle() {
-		var pivot = new GameObject ();
-		pivot.transform.parent = background.transform;
-		pivot.transform.localPosition = new Vector3(0,0,0);
-		StartCoroutine (SpawnExtraPivots(pivot, GameBoard.NumberOfPivots));
+		StartCoroutine (SpawnExtraPivots(background, GameBoard.NumberOfPivots));
 	}
 
 	private void SpawnPieces(PuzzlePivot pivot, Texture texture, Vector2 scale, Vector2 pictureVector) {
@@ -85,7 +83,7 @@ public class SubPuzzle : MonoBehaviour {
 		foreach (var piece in pieces) {
 			var randomX = UnityEngine.Random.Range (-100,100)*0.01f;
 			var randomY = UnityEngine.Random.Range (-200,200)*0.01f;
-			piece.transform.localPosition = new Vector3 (randomX,randomY,piece.transform.position.z);
+			piece.transform.localPosition = new Vector3 (randomX,randomY,piece.transform.localPosition.z);
 		}
 	}
 
@@ -111,16 +109,14 @@ public class SubPuzzle : MonoBehaviour {
 			yield return null;
 		}
 		if (subPuzzleLayer < GameBoard.NumberOfLayers) {
+			var newSubPuzzleLayer = subPuzzleLayer+1;
 			ArrangePiecePosition (activePuzzlePivot.pieces);
 
-			gameBoard.ZoomToLayer (GameBoard.NumberOfLayers);
-
-			var dist = gameBoard.transform.position - activePuzzlePivot.pieces [0].gameObject.transform.position;
-			gameBoard.transform.position += dist + new Vector3 (0, 1.5f, 0);
-
+			gameBoard.ZoomToLayer (newSubPuzzleLayer);
+			
 			foreach (var piece in activePuzzlePivot.pieces) {
 				var subPuzzle = GameObject.Instantiate (gameBoard.subPuzzlePrefab).GetComponent<SubPuzzle> ();
-				subPuzzle.Initialize (gameBoard, new Vector2 (0, 0), subPuzzleLayer + 1);
+				subPuzzle.Initialize (gameBoard, new Vector2 (0, 0), newSubPuzzleLayer);
 				subPuzzle.transform.parent = piece.transform.parent;
 				subPuzzle.transform.localPosition = piece.transform.localPosition+new Vector3(0,-0.5f,0);
 				subPuzzle.parentSubPuzzle = this;
@@ -129,7 +125,7 @@ public class SubPuzzle : MonoBehaviour {
 					piece.gameObject.SetActive(true);
 
 					if (AlllSubPuzzlesComplete()) {
-						background.GetComponent<MeshRenderer> ().enabled = true;
+						backgroundQuad.GetComponent<MeshRenderer> ().enabled = true;
 					}
 				};
 				subPuzzles.Add (subPuzzle);
@@ -142,7 +138,13 @@ public class SubPuzzle : MonoBehaviour {
 			foreach (var piece in activePuzzlePivot.pieces) {
 				piece.gameObject.SetActive (false);
 			}
-			background.GetComponent<MeshRenderer> ().enabled = false;
+			backgroundQuad.GetComponent<MeshRenderer> ().enabled = false;
+
+
+			var camera = GameObject.Find("Main Camera");
+			var newPos = camera.transform.position-subPuzzles [0].gameObject.transform.position;
+			newPos.z = 0;
+			gameBoard.transform.position += newPos;
 			SetActiveSubPuzzle (subPuzzles [0]);
 		}
 	}
