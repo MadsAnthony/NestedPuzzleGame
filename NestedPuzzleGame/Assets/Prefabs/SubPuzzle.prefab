@@ -182,7 +182,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 54701a0b30a36ab4d8e7c1ef92ef3e50, type: 2}
+  - {fileID: 2100000, guid: 7142b6609e371ab418658bffb953bb70, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -245,6 +245,7 @@ MonoBehaviour:
   subPuzzleButton: {fileID: 114926917405569918}
   draggablePiece: {fileID: 0}
   draggablePieceOffset: {x: 0, y: 0, z: 0}
+  parentSubPuzzle: {fileID: 0}
 --- !u!114 &114926917405569918
 MonoBehaviour:
   m_ObjectHideFlags: 1

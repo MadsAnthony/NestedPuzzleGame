@@ -18,11 +18,12 @@ public class GameBoard : MonoBehaviour {
 	public SubPuzzle activeSubPuzzle;
 	private GameObject goalPictureObject;
 	private List<SubPuzzle> subPuzzles = new List<SubPuzzle>();
-
+	private Vector3 startScale;
 	void Start () {
 		Application.targetFrameRate = 60;
 		CommandHandlers.RegisterCommandHandlers(typeof(GameBoard));
 
+		startScale = transform.localScale;
 		StartCoroutine (SpawnInitialSubPuzzle ());
 	}
 
@@ -87,6 +88,10 @@ public class GameBoard : MonoBehaviour {
 				}
 			}
 		}
+	}
+
+	public void ZoomToLayer(int layerNumber) {
+		transform.localScale = startScale*Mathf.Pow(2,layerNumber);
 	}
 
 	public IEnumerator ZoomOut() {

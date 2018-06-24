@@ -28,8 +28,11 @@ public class SubPuzzle : MonoBehaviour {
 	public SubPuzzle parentSubPuzzle;
 
 	private int subPuzzleLayer = 0;
+	Vector2 textureSize = new Vector2 (170,256)*3;
+	TextureFormat textureFormat = TextureFormat.ARGB32;
+	RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
 	void Start () {
-		puzzleCameraTexture = new RenderTexture (170, 256, 24, RenderTextureFormat.ARGB32);
+		puzzleCameraTexture = new RenderTexture ((int)textureSize.x, (int)textureSize.y, 24, renderTextureFormat);
 		puzzleCamera.targetTexture = puzzleCameraTexture;
 	}
 
@@ -60,12 +63,12 @@ public class SubPuzzle : MonoBehaviour {
 		for (int i = 0; i < 2; i++) {
 			for (int j = 0; j < 3; j++) {
 				var id = i.ToString () + j.ToString ();
-				var newSnapablePoint = new SnapablePoint (id, new Vector3 ((i-1)*2+1, (j-1)*2, 0));
+				var newSnapablePoint = new SnapablePoint (id, new Vector3 ((i-1)*2+1, (j-1)*2, -1));
 				snapablePoints.Add(newSnapablePoint);
 
 				var pieceObject = GameObject.Instantiate (piece).GetComponent<Piece>();
 				pieceObject.transform.parent = pivot.pivot.transform;
-				pieceObject.transform.localPosition = new Vector3 (0, 0, 0);
+				pieceObject.transform.localPosition = new Vector3 (0, 0, -1);
 				pieceObject.id = id;
 				pieceObject.gameBoard = gameBoard;
 
@@ -110,7 +113,7 @@ public class SubPuzzle : MonoBehaviour {
 		if (subPuzzleLayer < GameBoard.NumberOfLayers) {
 			ArrangePiecePosition (activePuzzlePivot.pieces);
 
-			gameBoard.transform.localScale = new Vector3 (gameBoard.transform.localScale.x * 2f, gameBoard.transform.localScale.y * 2f, gameBoard.transform.localScale.z);
+			gameBoard.ZoomToLayer (GameBoard.NumberOfLayers);
 
 			var dist = gameBoard.transform.position - activePuzzlePivot.pieces [0].gameObject.transform.position;
 			gameBoard.transform.position += dist + new Vector3 (0, 1.5f, 0);
@@ -172,7 +175,7 @@ public class SubPuzzle : MonoBehaviour {
 
 	private void SpawnExtraPivot(GameObject pivot) {
 		HideAllPuzzlePivots ();
-		var snapShot = new Texture2D (170, 256, TextureFormat.ARGB32,false);
+		var snapShot = new Texture2D ((int)textureSize.x, (int)textureSize.y, textureFormat, false);
 		Graphics.CopyTexture (puzzleCameraTexture, snapShot);
 		var puzzlePivot = new PuzzlePivot (pivot);
 		puzzlePivots.Add (puzzlePivot);
