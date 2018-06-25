@@ -88,12 +88,12 @@ public class SubPuzzle : MonoBehaviour {
 	}
 
 	private void ArrangePiecePosition(List<Piece> pieces) {
-		var offset = new Vector3 (-1.5f,-3,0);
+		var offset = new Vector3 (-1.5f,-4,0);
 		int i = 0;
 		foreach (var piece in pieces) {
 			var x = i%2;
 			var y = Mathf.RoundToInt(i/2);
-			piece.transform.localPosition = new Vector3 (x*3,y*3.3f,piece.transform.position.z)+offset;
+			piece.transform.localPosition = new Vector3 (x*3,y*4,piece.transform.localPosition.z)+offset;
 			i += 1;
 		}
 	}

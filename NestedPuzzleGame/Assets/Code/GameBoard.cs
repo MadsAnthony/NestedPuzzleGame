@@ -19,6 +19,7 @@ public class GameBoard : MonoBehaviour {
 	private GameObject goalPictureObject;
 	private List<SubPuzzle> subPuzzles = new List<SubPuzzle>();
 	private Vector3 startScale;
+	public static float ZoomScale = 3;
 	void Start () {
 		Application.targetFrameRate = 60;
 		CommandHandlers.RegisterCommandHandlers(typeof(GameBoard));
@@ -80,7 +81,12 @@ public class GameBoard : MonoBehaviour {
 				if (!hasMorePuzzles) {
 					activeSubPuzzle.WasDone ();
 					if (activeSubPuzzle.parentSubPuzzle != null) {
-						StartCoroutine (ZoomOut ());
+						transform.localScale *= 1/GameBoard.ZoomScale;
+						var camera = GameObject.Find("Main Camera");
+						var newPos = camera.transform.position-activeSubPuzzle.parentSubPuzzle.transform.position;
+						transform.localScale *= GameBoard.ZoomScale;
+
+						ZoomOut (transform.position+newPos);
 					} else {
 						goalPictureObject.SetActive (true);
 					}
@@ -91,18 +97,23 @@ public class GameBoard : MonoBehaviour {
 	}
 
 	public void ZoomToLayer(int layerNumber) {
-		transform.localScale = startScale*Mathf.Pow(2,layerNumber);
+		transform.localScale = startScale*Mathf.Pow(ZoomScale,layerNumber);
 	}
 
 	public IEnumerator ZoomOut() {
 		yield return new WaitForSeconds (0.5f);
 		StartCoroutine(AnimateTo (gameObject, new Vector3 (0,-1f)));
-		StartCoroutine(ScaleTo (gameObject, gameObject.transform.localScale*0.5f));
+		StartCoroutine(ScaleTo (gameObject, gameObject.transform.localScale*(1/ZoomScale)));
+	}
+
+	public void ZoomOut(Vector3 pos) {
+		StartCoroutine(AnimateTo (gameObject, new Vector3(pos.x,pos.y,gameObject.transform.position.z)));
+		StartCoroutine(ScaleTo (gameObject, gameObject.transform.localScale*1/ZoomScale));
 	}
 
 	public void ZoomIn(Vector3 pos) {
 		StartCoroutine(AnimateTo (gameObject, new Vector3(pos.x,pos.y,gameObject.transform.position.z)));
-		StartCoroutine(ScaleTo (gameObject, gameObject.transform.localScale*2));
+		StartCoroutine(ScaleTo (gameObject, gameObject.transform.localScale*ZoomScale));
 	}
 
 	private IEnumerator AnimateTo(GameObject gameObject, Vector3 endPosition) {
