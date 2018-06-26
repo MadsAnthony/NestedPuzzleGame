@@ -28,7 +28,7 @@ public class SubPuzzle : MonoBehaviour {
 	private List<SubPuzzle> subPuzzles = new List<SubPuzzle>();
 	public SubPuzzle parentSubPuzzle;
 
-	private int subPuzzleLayer = 0;
+	public int subPuzzleLayer = 0;
 	Vector2 textureSize = new Vector2 (170,256)*3;
 	TextureFormat textureFormat = TextureFormat.ARGB32;
 	RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
@@ -121,12 +121,14 @@ public class SubPuzzle : MonoBehaviour {
 				subPuzzle.transform.localPosition = piece.transform.localPosition+new Vector3(0,-0.5f,0);
 				subPuzzle.parentSubPuzzle = this;
 				subPuzzle.SpawnSubPuzzle ();
+				subPuzzle.ActivateSubPuzzle ();
 				subPuzzle.completedSubPuzzle += () => {
 					piece.gameObject.SetActive(true);
 
 					if (AlllSubPuzzlesComplete()) {
 						backgroundQuad.GetComponent<MeshRenderer> ().enabled = true;
 					}
+					SetActiveSubPuzzle (subPuzzle);
 				};
 				subPuzzles.Add (subPuzzle);
 			}
@@ -145,7 +147,7 @@ public class SubPuzzle : MonoBehaviour {
 			var newPos = camera.transform.position-subPuzzles [0].gameObject.transform.position;
 			newPos.z = 0;
 			gameBoard.transform.position += newPos;
-			SetActiveSubPuzzle (subPuzzles [0]);
+			SetActiveSubPuzzle (subPuzzles [0], false);
 		}
 	}
 
@@ -165,10 +167,17 @@ public class SubPuzzle : MonoBehaviour {
 			completedSubPuzzle ();
 		}
 	}
-
-	private void SetActiveSubPuzzle(SubPuzzle newActiveSubPuzzle) {
+	public void DeactivateAllSubPuzzles() {
 		foreach (var subPuzzle in subPuzzles) {
-			subPuzzle.DeactivateSubPuzzle();
+			subPuzzle.DeactivateSubPuzzle ();
+		}
+	}
+
+	private void SetActiveSubPuzzle(SubPuzzle newActiveSubPuzzle, bool deactivateOthers = true) {
+		if (deactivateOthers) {
+			foreach (var subPuzzle in subPuzzles) {
+				subPuzzle.DeactivateSubPuzzle ();
+			}
 		}
 		gameBoard.activeSubPuzzle = newActiveSubPuzzle;
 		activeSubPuzzle = newActiveSubPuzzle;

@@ -14,5 +14,6 @@ public class SubPuzzleButton : MonoBehaviour {
 
 		gameBoard.ZoomIn (gameBoard.transform.position+new Vector3(newPos.x, newPos.y,0));
 		gameBoard.SetActiveSubPuzzle (subPuzzle);
+		subPuzzle.DeactivateAllSubPuzzles ();
 	}
 }
