@@ -17,7 +17,6 @@ public class GameBoard : MonoBehaviour {
 
 	public SubPuzzle activeSubPuzzle;
 	private GameObject goalPictureObject;
-	private List<SubPuzzle> subPuzzles = new List<SubPuzzle>();
 	private Vector3 startScale;
 	public static float ZoomScale = 3;
 	void Start () {
@@ -38,7 +37,7 @@ public class GameBoard : MonoBehaviour {
 
 		var subPuzzle = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();
 		subPuzzle.transform.parent = transform;
-		subPuzzle.Initialize(this, new Vector2(0,0),0);
+		subPuzzle.Initialize(this, 0);
 		subPuzzle.transform.parent = transform;
 		subPuzzle.transform.localPosition = new Vector3 (0, 0, 0);
 		subPuzzle.SpawnSubPuzzle ();
@@ -54,9 +53,6 @@ public class GameBoard : MonoBehaviour {
 	}
 
 	public void SetActiveSubPuzzle(SubPuzzle newActiveSubPuzzle) {
-		foreach (var subPuzzle in subPuzzles) {
-			subPuzzle.DeactivateSubPuzzle();
-		}
 		activeSubPuzzle = newActiveSubPuzzle;
 		newActiveSubPuzzle.ActivateSubPuzzle();
 	}
@@ -160,6 +156,15 @@ public class GameBoard : MonoBehaviour {
 	[CommandHandler(Description="Determine how wide each puzzle is.")]
 	private static void SetNumberOfLayers(int numberOfLayers) {
 		NumberOfLayers = numberOfLayers;
+		ReloadLevelInternal ();
+	}
+	
+	public static int NumberOfPiecesOnX = 2;
+	public static int NumberOfPiecesOnY = 2;
+	[CommandHandler(Description="Determine how many pieces per puzzle.")]
+	private static void SetNumberOfPieces(int numberOfPiecesOnX, int numberOfPiecesOnY) {
+		NumberOfPiecesOnX = numberOfPiecesOnX;
+		NumberOfPiecesOnY = numberOfPiecesOnY;
 		ReloadLevelInternal ();
 	}
 }

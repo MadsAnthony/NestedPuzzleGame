@@ -12,19 +12,15 @@ public class SubPuzzle : MonoBehaviour {
 	[SerializeField] private SubPuzzleButton subPuzzleButton;
 
 	private RenderTexture puzzleCameraTexture;
-
-	public Piece draggablePiece;
-	public Vector3 draggablePieceOffset;
+	
 	private GameBoard gameBoard;
-	private Vector2 pictureVector;
 
 	private List<SnapablePoint> snapablePoints = new List<SnapablePoint>();
 	private RenderTexture puzzleTexture;
 
 	private List<PuzzlePivot> puzzlePivots = new List<PuzzlePivot>();
 	private PuzzlePivot activePuzzlePivot;
-
-	private SubPuzzle activeSubPuzzle;
+	
 	private List<SubPuzzle> subPuzzles = new List<SubPuzzle>();
 	public SubPuzzle parentSubPuzzle;
 
@@ -37,11 +33,10 @@ public class SubPuzzle : MonoBehaviour {
 		puzzleCamera.targetTexture = puzzleCameraTexture;
 	}
 
-	public void Initialize(GameBoard gameBoard, Vector2 pictureVector, int layer) {
+	public void Initialize(GameBoard gameBoard, int layer) {
 		this.gameBoard = gameBoard;
 		subPuzzleButton.gameBoard = gameBoard;
 		subPuzzleButton.subPuzzle = this;
-		this.pictureVector = pictureVector;
 		subPuzzleLayer = layer;
 	}
 
@@ -57,21 +52,33 @@ public class SubPuzzle : MonoBehaviour {
 		StartCoroutine (SpawnExtraPivots(background, GameBoard.NumberOfPivots));
 	}
 
-	private void SpawnPieces(PuzzlePivot pivot, Texture texture, Vector2 scale, Vector2 pictureVector) {
-		for (int i = 0; i < 2; i++) {
-			for (int j = 0; j < 3; j++) {
+	
+	private void SpawnPieces(PuzzlePivot pivot, Texture texture) {
+		int piecesOnX = GameBoard.NumberOfPiecesOnX;
+		int piecesOnY = GameBoard.NumberOfPiecesOnY;
+		var sizeOfPicture = new Vector2(4,6);
+		var scale = new Vector2(1f/piecesOnX, 1f/piecesOnY);
+
+
+		var a = sizeOfPicture.x - sizeOfPicture.x * 0.5f;
+		for (int i = 0; i < piecesOnX; i++) {
+			for (int j = 0; j < piecesOnY; j++) {
 				var id = i.ToString () + j.ToString ();
-				var newSnapablePoint = new SnapablePoint (id, new Vector3 ((i-1)*2+1, (j-1)*2, -1));
+
+				var midPointX = sizeOfPicture.x*(scale.x*(i+0.5f)-0.5f);
+				var midPointY = sizeOfPicture.y*(scale.y*(j+0.5f)-0.5f);
+				var newSnapablePoint = new SnapablePoint (id, new Vector3 (midPointX, midPointY, -1));
 				snapablePoints.Add(newSnapablePoint);
 
 				var pieceObject = GameObject.Instantiate (piece).GetComponent<Piece>();
 				pieceObject.transform.parent = pivot.pivot.transform;
 				pieceObject.transform.localPosition = new Vector3 (0, 0, -1);
+				pieceObject.transform.localScale = new Vector3(sizeOfPicture.x*scale.x,sizeOfPicture.y*scale.y,1);
 				pieceObject.id = id;
 				pieceObject.gameBoard = gameBoard;
 
 				pieceObject.GetComponent<MeshRenderer> ().material.SetTextureScale ("_MainTex",scale);
-				pieceObject.GetComponent<MeshRenderer>().material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y)+pictureVector);
+				pieceObject.GetComponent<MeshRenderer>().material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
 				pieceObject.GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex", texture);
 
 				pivot.pieces.Add (pieceObject);
@@ -116,7 +123,7 @@ public class SubPuzzle : MonoBehaviour {
 			
 			foreach (var piece in activePuzzlePivot.pieces) {
 				var subPuzzle = GameObject.Instantiate (gameBoard.subPuzzlePrefab).GetComponent<SubPuzzle> ();
-				subPuzzle.Initialize (gameBoard, new Vector2 (0, 0), newSubPuzzleLayer);
+				subPuzzle.Initialize (gameBoard, newSubPuzzleLayer);
 				subPuzzle.transform.parent = piece.transform.parent;
 				subPuzzle.transform.localPosition = piece.transform.localPosition+new Vector3(0,-0.5f,0);
 				subPuzzle.parentSubPuzzle = this;
@@ -180,7 +187,6 @@ public class SubPuzzle : MonoBehaviour {
 			}
 		}
 		gameBoard.activeSubPuzzle = newActiveSubPuzzle;
-		activeSubPuzzle = newActiveSubPuzzle;
 		newActiveSubPuzzle.ActivateSubPuzzle();
 	}
 
@@ -190,7 +196,7 @@ public class SubPuzzle : MonoBehaviour {
 		Graphics.CopyTexture (puzzleCameraTexture, snapShot);
 		var puzzlePivot = new PuzzlePivot (pivot);
 		puzzlePivots.Add (puzzlePivot);
-		SpawnPieces (puzzlePivot, snapShot, new Vector2 (0.5f,0.33f), Vector2.zero);
+		SpawnPieces (puzzlePivot, snapShot);
 		ScramblePiecePosition (puzzlePivot.pieces);
 		activePuzzlePivot = puzzlePivot;
 	}
