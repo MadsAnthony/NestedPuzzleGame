@@ -54,13 +54,11 @@ public class SubPuzzle : MonoBehaviour {
 
 	
 	private void SpawnPieces(PuzzlePivot pivot, Texture texture) {
-		int piecesOnX = GameBoard.NumberOfPiecesOnX;
-		int piecesOnY = GameBoard.NumberOfPiecesOnY;
+		int piecesOnX = (int)GameBoard.NumberOfPieces.x;
+		int piecesOnY = (int)GameBoard.NumberOfPieces.y;
 		var sizeOfPicture = new Vector2(4,6);
 		var scale = new Vector2(1f/piecesOnX, 1f/piecesOnY);
 
-
-		var a = sizeOfPicture.x - sizeOfPicture.x * 0.5f;
 		for (int i = 0; i < piecesOnX; i++) {
 			for (int j = 0; j < piecesOnY; j++) {
 				var id = i.ToString () + j.ToString ();
@@ -115,6 +113,7 @@ public class SubPuzzle : MonoBehaviour {
 			SpawnExtraPivot (pivot);
 			yield return null;
 		}
+
 		if (subPuzzleLayer < GameBoard.NumberOfLayers) {
 			var newSubPuzzleLayer = subPuzzleLayer+1;
 			ArrangePiecePosition (activePuzzlePivot.pieces);

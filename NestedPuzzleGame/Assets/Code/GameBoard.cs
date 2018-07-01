@@ -19,9 +19,13 @@ public class GameBoard : MonoBehaviour {
 	private GameObject goalPictureObject;
 	private Vector3 startScale;
 	public static float ZoomScale = 3;
+
 	void Start () {
-		Application.targetFrameRate = 60;
-		CommandHandlers.RegisterCommandHandlers(typeof(GameBoard));
+		var level = Director.LevelDatabase.levels [Director.Instance.LevelIndex];
+
+		GameBoard.numberOfLayers = level.numberOfLayers;
+		GameBoard.numberOfPivots = level.numberOfPivots;
+		GameBoard.numberOfPieces = level.numberOfPieces;
 
 		startScale = transform.localScale;
 		StartCoroutine (SpawnInitialSubPuzzle ());
@@ -96,6 +100,39 @@ public class GameBoard : MonoBehaviour {
 		transform.localScale = startScale*Mathf.Pow(ZoomScale,layerNumber);
 	}
 
+	public static int numberOfLayers;
+	public static int NumberOfLayers { 
+		get 
+		{
+			if (DeveloperCheats.NumberOfLayers >= 0) {
+				return DeveloperCheats.NumberOfLayers;
+			}
+			return numberOfLayers;
+		}
+	}
+
+	public static int numberOfPivots;
+	public static int NumberOfPivots { 
+		get 
+		{
+			if (DeveloperCheats.NumberOfPivots > 0) {
+				return DeveloperCheats.NumberOfPivots;
+			}
+			return numberOfPivots;
+		}
+	}
+
+	public static Vector2 numberOfPieces;
+	public static Vector2 NumberOfPieces { 
+		get 
+		{
+			if (DeveloperCheats.NumberOfPiecesOnX > 0 || DeveloperCheats.NumberOfPiecesOnY>0) {
+				return new Vector2(DeveloperCheats.NumberOfPiecesOnX,DeveloperCheats.NumberOfPiecesOnY);
+			}
+			return numberOfPieces;
+		}
+	}
+
 	public IEnumerator ZoomOut() {
 		yield return new WaitForSeconds (0.5f);
 		StartCoroutine(AnimateTo (gameObject, new Vector3 (0,-1f)));
@@ -134,37 +171,5 @@ public class GameBoard : MonoBehaviour {
 			gameObject.transform.localScale = (startScale * (1 - t)) + endScale * t;
 			yield return null;
 		}
-	}
-
-	private static void ReloadLevelInternal() {
-		SceneManager.LoadScene ("Boot");
-	}
-
-	[CommandHandler(Description="Will reload the level.")]
-	private static void ReloadLevel() {
-		ReloadLevelInternal ();
-	}
-
-	public static int NumberOfPivots = 1;
-	[CommandHandler(Description="Determine how deep each puzzle is.")]
-	private static void SetNumberOfPivots(int numberOfPivots) {
-		NumberOfPivots = numberOfPivots;
-		ReloadLevelInternal ();
-	}
-
-	public static int NumberOfLayers = 1;
-	[CommandHandler(Description="Determine how wide each puzzle is.")]
-	private static void SetNumberOfLayers(int numberOfLayers) {
-		NumberOfLayers = numberOfLayers;
-		ReloadLevelInternal ();
-	}
-	
-	public static int NumberOfPiecesOnX = 2;
-	public static int NumberOfPiecesOnY = 2;
-	[CommandHandler(Description="Determine how many pieces per puzzle.")]
-	private static void SetNumberOfPieces(int numberOfPiecesOnX, int numberOfPiecesOnY) {
-		NumberOfPiecesOnX = numberOfPiecesOnX;
-		NumberOfPiecesOnY = numberOfPiecesOnY;
-		ReloadLevelInternal ();
 	}
 }
