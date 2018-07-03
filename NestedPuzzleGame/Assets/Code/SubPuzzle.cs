@@ -25,19 +25,26 @@ public class SubPuzzle : MonoBehaviour {
 	public SubPuzzle parentSubPuzzle;
 
 	public int subPuzzleLayer = 0;
-	Vector2 textureSize = new Vector2 (170,256)*3;
-	TextureFormat textureFormat = TextureFormat.ARGB32;
-	RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
+	private Vector2 textureSize;
+	private TextureFormat textureFormat = TextureFormat.ARGB32;
+	private RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
+	private Vector2 sizeOfPicture;
 	void Start () {
-		puzzleCameraTexture = new RenderTexture ((int)textureSize.x, (int)textureSize.y, 24, renderTextureFormat);
-		puzzleCamera.targetTexture = puzzleCameraTexture;
+		
 	}
 
-	public void Initialize(GameBoard gameBoard, int layer) {
+	public void Initialize(GameBoard gameBoard, int layer, Vector2 sizeOfPicture) {
 		this.gameBoard = gameBoard;
 		subPuzzleButton.gameBoard = gameBoard;
 		subPuzzleButton.subPuzzle = this;
 		subPuzzleLayer = layer;
+		this.sizeOfPicture = sizeOfPicture;
+
+		textureSize = new Vector2 (sizeOfPicture.x,sizeOfPicture.y)*300;
+		puzzleCamera.orthographicSize = sizeOfPicture.y/2;
+		backgroundQuad.transform.localScale = new Vector3(sizeOfPicture.x,sizeOfPicture.y,1);
+		puzzleCameraTexture = new RenderTexture ((int)textureSize.x, (int)textureSize.y, 24, renderTextureFormat);
+		puzzleCamera.targetTexture = puzzleCameraTexture;
 	}
 
 	public void ActivateSubPuzzle() {
@@ -56,7 +63,7 @@ public class SubPuzzle : MonoBehaviour {
 	private void SpawnPieces(PuzzlePivot pivot, Texture texture) {
 		int piecesOnX = (int)GameBoard.NumberOfPieces.x;
 		int piecesOnY = (int)GameBoard.NumberOfPieces.y;
-		var sizeOfPicture = new Vector2(4,6);
+
 		var scale = new Vector2(1f/piecesOnX, 1f/piecesOnY);
 
 		for (int i = 0; i < piecesOnX; i++) {
@@ -86,8 +93,14 @@ public class SubPuzzle : MonoBehaviour {
 
 	private void ScramblePiecePosition(List<Piece> pieces) {
 		foreach (var piece in pieces) {
-			var randomX = UnityEngine.Random.Range (-100,100)*0.01f;
-			var randomY = UnityEngine.Random.Range (-200,200)*0.01f;
+			var x = sizeOfPicture.x * 0.5f;
+			var y = sizeOfPicture.x * 0.5f;
+			var pieceScaleX = piece.transform.localScale.x*0.5f;
+			var pieceScaleY = piece.transform.localScale.x*0.5f;
+
+
+			var randomX =  UnityEngine.Random.Range ((-x+pieceScaleX)*100,(x-pieceScaleX)*100)*0.01f;
+			var randomY = UnityEngine.Random.Range ((-y+pieceScaleY)*100,(y-pieceScaleY)*100)*0.01f;
 			piece.transform.localPosition = new Vector3 (randomX,randomY,piece.transform.localPosition.z);
 		}
 	}
@@ -122,7 +135,7 @@ public class SubPuzzle : MonoBehaviour {
 			
 			foreach (var piece in activePuzzlePivot.pieces) {
 				var subPuzzle = GameObject.Instantiate (gameBoard.subPuzzlePrefab).GetComponent<SubPuzzle> ();
-				subPuzzle.Initialize (gameBoard, newSubPuzzleLayer);
+				subPuzzle.Initialize (gameBoard, newSubPuzzleLayer, new Vector2(4,6));
 				subPuzzle.transform.parent = piece.transform.parent;
 				subPuzzle.transform.localPosition = piece.transform.localPosition+new Vector3(0,-0.5f,0);
 				subPuzzle.parentSubPuzzle = this;

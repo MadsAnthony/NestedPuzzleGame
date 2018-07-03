@@ -20,8 +20,10 @@ public class GameBoard : MonoBehaviour {
 	private Vector3 startScale;
 	public static float ZoomScale = 3;
 
+	private LevelAsset level;
+
 	void Start () {
-		var level = Director.LevelDatabase.levels [Director.Instance.LevelIndex];
+		level = Director.LevelDatabase.levels [Director.Instance.LevelIndex];
 
 		GameBoard.numberOfLayers = level.numberOfLayers;
 		GameBoard.numberOfPivots = level.numberOfPivots;
@@ -32,16 +34,20 @@ public class GameBoard : MonoBehaviour {
 	}
 
 	private IEnumerator SpawnInitialSubPuzzle() {
-		var scale = 2;
+		var scale = 4;
+		var aspectRatio = (float)level.picture.height/level.picture.width;
+		var pictureSize = new Vector2(scale, scale*aspectRatio);
+
 		goalPictureObject = GameObject.Instantiate (goalPicture);
 		goalPictureObject.transform.parent = transform;
-		goalPictureObject.transform.localScale = scale*new Vector3 (2,3,goalPictureObject.transform.localScale.z);
+
+		goalPictureObject.transform.localScale = new Vector3 (pictureSize.x,pictureSize.y,goalPictureObject.transform.localScale.z);
 		goalPictureObject.transform.localPosition = new Vector3 (0,1.5f,-1);
-		goalPictureObject.GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex", goalTexture);
+		goalPictureObject.GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex", level.picture);
 
 		var subPuzzle = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();
 		subPuzzle.transform.parent = transform;
-		subPuzzle.Initialize(this, 0);
+		subPuzzle.Initialize(this, 0, pictureSize);
 		subPuzzle.transform.parent = transform;
 		subPuzzle.transform.localPosition = new Vector3 (0, 0, 0);
 		subPuzzle.SpawnSubPuzzle ();
@@ -89,6 +95,7 @@ public class GameBoard : MonoBehaviour {
 						ZoomOut (transform.position+newPos);
 					} else {
 						goalPictureObject.SetActive (true);
+						Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("LevelSelectScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
 					}
 					activeSubPuzzle = activeSubPuzzle.parentSubPuzzle;
 				}
