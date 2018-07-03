@@ -11,6 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9faea46c07cdb9947bd762f9b7e559e9, type: 3}
   m_Name: Levelb
   m_EditorClassIdentifier: 
+  picture: {fileID: 2800000, guid: 34e1e438e7f5dbf4eb9a2c10f3c7bb9f, type: 3}
   numberOfLayers: 1
   numberOfPivots: 1
   numberOfPieces: {x: 2, y: 1}
