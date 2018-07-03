@@ -95,6 +95,9 @@ public class GameBoard : MonoBehaviour {
 						ZoomOut (transform.position+newPos);
 					} else {
 						goalPictureObject.SetActive (true);
+						var tempDict = Director.SaveData.LevelProgress;
+						tempDict[Director.Instance.LevelIndex.ToString()] = new LevelSaveData(true);
+						Director.SaveData.LevelProgress = tempDict;
 						Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("LevelSelectScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
 					}
 					activeSubPuzzle = activeSubPuzzle.parentSubPuzzle;

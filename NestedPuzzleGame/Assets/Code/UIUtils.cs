@@ -13,6 +13,14 @@ public class UIUtils : MonoBehaviour {
 		SceneManager.LoadScene ("LevelScene");
 	}
 
+	public void MoveObjectRight(GameObject gameObject) {
+		gameObject.transform.localPosition += new Vector3(-3,0,0);
+	}
+
+	public void MoveObjectLeft(GameObject gameObject) {
+		gameObject.transform.localPosition += new Vector3(3,0,0);
+	}
+
 	public void RestartLevel() {
 		SceneManager.LoadScene ("LevelScene");
 	}
