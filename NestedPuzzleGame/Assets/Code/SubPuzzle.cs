@@ -40,7 +40,7 @@ public class SubPuzzle : MonoBehaviour {
 		subPuzzleLayer = layer;
 		this.sizeOfPicture = sizeOfPicture;
 
-		textureSize = new Vector2 (sizeOfPicture.x,sizeOfPicture.y)*300;
+		textureSize = new Vector2 (sizeOfPicture.x,sizeOfPicture.y)*120;
 		puzzleCamera.orthographicSize = sizeOfPicture.y/2;
 		backgroundQuad.transform.localScale = new Vector3(sizeOfPicture.x,sizeOfPicture.y,1);
 		puzzleCameraTexture = new RenderTexture ((int)textureSize.x, (int)textureSize.y, 24, renderTextureFormat);

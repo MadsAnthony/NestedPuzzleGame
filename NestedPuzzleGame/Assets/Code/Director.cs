@@ -9,7 +9,7 @@ public class Director : MonoBehaviour  {
 	[SerializeField] private LevelDatabase levelDatabase;
 	[SerializeField] private SoundDatabase soundDatabase;
 
-	private int levelIndex = 0;
+	private int levelIndex = -1;
 	private int prevLevelIndex = -1;
 	public int LevelIndex 
 	{

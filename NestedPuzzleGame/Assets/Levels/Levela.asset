@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9faea46c07cdb9947bd762f9b7e559e9, type: 3}
   m_Name: Levela
   m_EditorClassIdentifier: 
-  picture: {fileID: 2800000, guid: 6d313820a7a9f8042a924f35b7007706, type: 3}
+  picture: {fileID: 2800000, guid: 21df3d74825234f528c36b4fe5124271, type: 3}
   numberOfLayers: 0
   numberOfPivots: 1
-  numberOfPieces: {x: 2, y: 2}
+  numberOfPieces: {x: 2, y: 3}
