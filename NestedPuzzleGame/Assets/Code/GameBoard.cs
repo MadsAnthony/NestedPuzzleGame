@@ -18,16 +18,18 @@ public class GameBoard : MonoBehaviour {
 	public SubPuzzle activeSubPuzzle;
 	private GameObject goalPictureObject;
 	private Vector3 startScale;
-	public static float ZoomScale = 3;
+	public static float ZoomScale = GameBoard.NumberOfPieces.x;
 
 	private LevelAsset level;
 
 	void Start () {
 		level = Director.LevelDatabase.levels [Director.Instance.LevelIndex];
-
+		
 		GameBoard.numberOfLayers = level.numberOfLayers;
 		GameBoard.numberOfPivots = level.numberOfPivots;
 		GameBoard.numberOfPieces = level.numberOfPieces;
+		
+		ZoomScale = (float)GameBoard.NumberOfPieces.x;
 
 		startScale = transform.localScale;
 		StartCoroutine (SpawnInitialSubPuzzle ());
@@ -42,7 +44,7 @@ public class GameBoard : MonoBehaviour {
 		goalPictureObject.transform.parent = transform;
 
 		goalPictureObject.transform.localScale = new Vector3 (pictureSize.x,pictureSize.y,goalPictureObject.transform.localScale.z);
-		goalPictureObject.transform.localPosition = new Vector3 (0,1.5f,-1);
+		goalPictureObject.transform.localPosition = new Vector3 (0,0,-1);
 		goalPictureObject.GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex", level.picture);
 
 		var subPuzzle = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();

@@ -108,10 +108,14 @@ public class SubPuzzle : MonoBehaviour {
 	private void ArrangePiecePosition(List<Piece> pieces) {
 		var offset = new Vector3 (-1.5f,-4,0);
 		int i = 0;
+		
+		int piecesOnX = (int)GameBoard.NumberOfPieces.x;
+		
 		foreach (var piece in pieces) {
-			var x = i%2;
-			var y = Mathf.RoundToInt(i/2);
-			piece.transform.localPosition = new Vector3 (x*3,y*4,piece.transform.localPosition.z)+offset;
+			var x = i%piecesOnX;
+			var y = Mathf.RoundToInt(i/piecesOnX);
+			var space = new Vector3(x,y,0)*0.5f;
+			piece.transform.localPosition = space+new Vector3 (x*piece.transform.localScale.x,y*piece.transform.localScale.y,piece.transform.localPosition.z)+offset;
 			i += 1;
 		}
 	}
@@ -134,10 +138,14 @@ public class SubPuzzle : MonoBehaviour {
 			gameBoard.ZoomToLayer (newSubPuzzleLayer);
 			
 			foreach (var piece in activePuzzlePivot.pieces) {
+				var scale = 4;
+				var aspectRatio = piece.transform.localScale.y/piece.transform.localScale.x;
+				var pictureSize = new Vector2(scale, scale*aspectRatio);
+				
 				var subPuzzle = GameObject.Instantiate (gameBoard.subPuzzlePrefab).GetComponent<SubPuzzle> ();
-				subPuzzle.Initialize (gameBoard, newSubPuzzleLayer, new Vector2(4,6));
+				subPuzzle.Initialize (gameBoard, newSubPuzzleLayer, pictureSize);
 				subPuzzle.transform.parent = piece.transform.parent;
-				subPuzzle.transform.localPosition = piece.transform.localPosition+new Vector3(0,-0.5f,0);
+				subPuzzle.transform.localPosition = piece.transform.localPosition;
 				subPuzzle.parentSubPuzzle = this;
 				subPuzzle.SpawnSubPuzzle ();
 				subPuzzle.ActivateSubPuzzle ();
@@ -202,9 +210,10 @@ public class SubPuzzle : MonoBehaviour {
 		newActiveSubPuzzle.ActivateSubPuzzle();
 	}
 
+	public Texture snapShot;
 	private void SpawnExtraPivot(GameObject pivot) {
 		HideAllPuzzlePivots ();
-		var snapShot = new Texture2D ((int)textureSize.x, (int)textureSize.y, textureFormat, false);
+		snapShot = new Texture2D ((int)textureSize.x, (int)textureSize.y, textureFormat, false);
 		Graphics.CopyTexture (puzzleCameraTexture, snapShot);
 		var puzzlePivot = new PuzzlePivot (pivot);
 		puzzlePivots.Add (puzzlePivot);
