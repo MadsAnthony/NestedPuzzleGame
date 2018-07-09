@@ -11,7 +11,7 @@ public class LevelSelectView : MonoBehaviour
    public int currentLevelIndex;
    private void Start() {
       currentLevelIndex = Director.Instance.LevelIndex;
-      if (currentLevelIndex>0) {
+      if (currentLevelIndex>=0) {
          StartCoroutine(InitialFlow());
       }
    }

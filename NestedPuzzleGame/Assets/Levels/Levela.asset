@@ -15,3 +15,12 @@ MonoBehaviour:
   numberOfLayers: 0
   numberOfPivots: 1
   numberOfPieces: {x: 2, y: 3}
+  subPuzzleNodes:
+  - id: 0
+    numberOfLayers: 0
+  - id: 0
+    numberOfLayers: 0
+  - id: 0
+    numberOfLayers: 0
+  - id: 0
+    numberOfLayers: 0
