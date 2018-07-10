@@ -14,7 +14,8 @@ public class LevelAsset : ScriptableObject {
 	[Serializable]
 	public class SubPuzzleNode {
 		public string id;
-		public int numberOfLayers = 0;
+		public int numberOfPivots = 1;
+		public Vector2 numberOfPieces = new Vector2(1,1);
 
 		public SubPuzzleNode(string id) {
 			this.id = id;
