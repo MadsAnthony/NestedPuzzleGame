@@ -25,6 +25,8 @@ public class SubPuzzle : MonoBehaviour {
 	public SubPuzzle parentSubPuzzle;
 
 	public int subPuzzleLayer = 0;
+	public string id;
+	public LevelAsset.SubPuzzleNode nodeAsset;
 	private Vector2 textureSize;
 	private TextureFormat textureFormat = TextureFormat.ARGB32;
 	private RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
@@ -33,12 +35,14 @@ public class SubPuzzle : MonoBehaviour {
 		
 	}
 
-	public void Initialize(GameBoard gameBoard, int layer, Vector2 sizeOfPicture) {
+	public void Initialize(GameBoard gameBoard, string id, int layer, Vector2 sizeOfPicture) {
 		this.gameBoard = gameBoard;
 		subPuzzleButton.gameBoard = gameBoard;
 		subPuzzleButton.subPuzzle = this;
 		subPuzzleLayer = layer;
 		this.sizeOfPicture = sizeOfPicture;
+		this.id = id;
+		nodeAsset = LevelAssetHelper.GetNodeAsset (gameBoard.nodeAssetDictionary, id);
 
 		textureSize = new Vector2 (sizeOfPicture.x,sizeOfPicture.y)*120;
 		puzzleCamera.orthographicSize = sizeOfPicture.y/2;
@@ -56,13 +60,13 @@ public class SubPuzzle : MonoBehaviour {
 	}
 
 	public void SpawnSubPuzzle() {
-		StartCoroutine (SpawnExtraPivots(background, GameBoard.NumberOfPivots));
+		StartCoroutine (SpawnExtraPivots(background, nodeAsset.numberOfPivots));
 	}
 
 	
 	private void SpawnPieces(PuzzlePivot pivot, Texture texture) {
-		int piecesOnX = (int)GameBoard.NumberOfPieces.x;
-		int piecesOnY = (int)GameBoard.NumberOfPieces.y;
+		int piecesOnX = (int)nodeAsset.numberOfPieces.x;
+		int piecesOnY = (int)nodeAsset.numberOfPieces.y;
 
 		var scale = new Vector2(1f/piecesOnX, 1f/piecesOnY);
 
@@ -131,19 +135,21 @@ public class SubPuzzle : MonoBehaviour {
 			yield return null;
 		}
 
-		if (subPuzzleLayer < GameBoard.NumberOfLayers) {
+		var childrenNodes = LevelAssetHelper.GetChildrenNodes (gameBoard.nodeAssetDictionary, id);
+		if (childrenNodes.Count>0) {
 			var newSubPuzzleLayer = subPuzzleLayer+1;
 			ArrangePiecePosition (activePuzzlePivot.pieces);
-
 			gameBoard.ZoomToLayer (newSubPuzzleLayer);
-			
-			foreach (var piece in activePuzzlePivot.pieces) {
+
+			int n = 0;
+			foreach (var childrenNode in childrenNodes) {
+				var piece = activePuzzlePivot.pieces[n];
 				var scale = 4;
 				var aspectRatio = piece.transform.localScale.y/piece.transform.localScale.x;
 				var pictureSize = new Vector2(scale, scale*aspectRatio);
 				
 				var subPuzzle = GameObject.Instantiate (gameBoard.subPuzzlePrefab).GetComponent<SubPuzzle> ();
-				subPuzzle.Initialize (gameBoard, newSubPuzzleLayer, pictureSize);
+				subPuzzle.Initialize (gameBoard, childrenNode.id, newSubPuzzleLayer, pictureSize);
 				subPuzzle.transform.parent = piece.transform.parent;
 				subPuzzle.transform.localPosition = piece.transform.localPosition;
 				subPuzzle.parentSubPuzzle = this;
@@ -158,14 +164,15 @@ public class SubPuzzle : MonoBehaviour {
 					SetActiveSubPuzzle (subPuzzle);
 				};
 				subPuzzles.Add (subPuzzle);
+				n++;
 			}
 
 			// Wait 3 frames
 			for (int i = 0; i < 3; i++) {
 				yield return null;
 			}
-			foreach (var piece in activePuzzlePivot.pieces) {
-				piece.gameObject.SetActive (false);
+			for (int i = 0; i < n; i++) {
+				activePuzzlePivot.pieces[i].gameObject.SetActive (false);
 			}
 			backgroundQuad.GetComponent<MeshRenderer> ().enabled = false;
 

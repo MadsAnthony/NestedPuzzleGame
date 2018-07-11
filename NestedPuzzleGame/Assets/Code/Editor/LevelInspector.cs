@@ -45,7 +45,7 @@ public class LevelInspector : Editor {
 			EditorGUILayout.BeginVertical();
 			GUILayout.Space (windowOffset.y+windowSize.y);
 
-			var selectedNodeAsset = GetNodeAsset (selectableNodeId);
+			var selectedNodeAsset = LevelAssetHelper.GetNodeAsset (nodeAssetDictionary, selectableNodeId);
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.LabelField ("SelectionId:");
 			EditorGUILayout.LabelField (selectionId);
@@ -56,7 +56,7 @@ public class LevelInspector : Editor {
 
 			EditorGUILayout.EndVertical ();
 			if(GUILayout.Button("Add Node")) {
-				myTarget.subPuzzleNodes.Add(new LevelAsset.SubPuzzleNode(selectedNodeAsset.id+"-"+GetChildrenNodes(selectedNodeAsset.id).Count));
+				myTarget.subPuzzleNodes.Add(new LevelAsset.SubPuzzleNode(selectedNodeAsset.id+"-"+LevelAssetHelper.GetChildrenNodes(nodeAssetDictionary,selectedNodeAsset.id).Count));
 				reconstruct = true;
 			}
 		}
@@ -167,7 +167,7 @@ public class LevelInspector : Editor {
 
 		levelEditorNode = Resources.Load ("LevelEditorNode") as GameObject;
 
-		nodeAssetDictionary = ConstructDictionary ();
+		nodeAssetDictionary = LevelAssetHelper.ConstructDictionary (myTarget.subPuzzleNodes);
 		nodeDictionary = new Dictionary<string,LevelEditorNode>();
 		var rootNode = nodeAssetDictionary [""][0];
 		SpawnNode (rootNode, new Vector2(0,4));
@@ -203,65 +203,6 @@ public class LevelInspector : Editor {
 				x += 1.5f;
 			}
 		}
-	}
-
-	private LevelAsset.SubPuzzleNode GetNodeAsset(string id) {
-		var nodeList = GetNodeAndSiblings (id);
-		if (nodeList != null) {
-			foreach (var node in nodeList) {
-				if (node.id == id) {
-					return node;
-				}
-			}
-		}
-
-		return null;
-	}
-
-	private List<LevelAsset.SubPuzzleNode> GetNodeAndSiblings(string id) {
-		var parentId = GetParentId (id);
-		List<LevelAsset.SubPuzzleNode> nodeList = new List<LevelAsset.SubPuzzleNode>();
-		nodeAssetDictionary.TryGetValue (parentId, out nodeList);
-		return nodeList;
-	}
-
-	private List<LevelAsset.SubPuzzleNode> GetChildrenNodes(string id) {
-		List<LevelAsset.SubPuzzleNode> nodeList;
-		nodeAssetDictionary.TryGetValue (id, out nodeList);
-		if (nodeList != null) {
-			return nodeList;
-		}
-		return new List<LevelAsset.SubPuzzleNode>();
-	}
-
-	private string GetParentId(string id) {
-		string parentId = String.Empty;
-		var idPath = id.Split('-');
-		for (int i = 0; i<idPath.Length-1; i++) {
-			if (i > 0) {
-				parentId += "-";
-			}
-			parentId += idPath [i];
-		}
-		return parentId;
-	}
-
-	private Dictionary<string,List<LevelAsset.SubPuzzleNode>> ConstructDictionary() {
-		LevelAsset myTarget = (LevelAsset)target;
-		var result = new Dictionary<string,List<LevelAsset.SubPuzzleNode>> ();
-		foreach (var node in myTarget.subPuzzleNodes) {
-			string parentId = GetParentId (node.id);
-
-			if (!result.ContainsKey(parentId)) {
-				var newList = new List<LevelAsset.SubPuzzleNode> ();
-				newList.Add (node);
-				result.Add (parentId,newList);
-			} else {
-				result [parentId].Add (node);
-			}
-		}
-
-		return result;
 	}
 
 	public void SetHideFlagsRecursively(GameObject gameObject) {

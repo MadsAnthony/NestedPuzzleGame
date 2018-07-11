@@ -22,6 +22,7 @@ public class GameBoard : MonoBehaviour {
 
 	private LevelAsset level;
 
+	public Dictionary<string,List<LevelAsset.SubPuzzleNode>> nodeAssetDictionary;
 	void Start () {
 		level = Director.LevelDatabase.levels [Director.Instance.LevelIndex];
 		
@@ -32,6 +33,8 @@ public class GameBoard : MonoBehaviour {
 		ZoomScale = (float)GameBoard.NumberOfPieces.x;
 
 		startScale = transform.localScale;
+		nodeAssetDictionary = LevelAssetHelper.ConstructDictionary (level.subPuzzleNodes);
+
 		StartCoroutine (SpawnInitialSubPuzzle ());
 	}
 
@@ -49,7 +52,7 @@ public class GameBoard : MonoBehaviour {
 
 		var subPuzzle = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();
 		subPuzzle.transform.parent = transform;
-		subPuzzle.Initialize(this, 0, pictureSize);
+		subPuzzle.Initialize(this, "0" , 0, pictureSize);
 		subPuzzle.transform.parent = transform;
 		subPuzzle.transform.localPosition = new Vector3 (0, 0, 0);
 		subPuzzle.SpawnSubPuzzle ();

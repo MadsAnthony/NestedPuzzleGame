@@ -15,4 +15,7 @@ MonoBehaviour:
   numberOfLayers: 0
   numberOfPivots: 2
   numberOfPieces: {x: 2, y: 2}
-  subPuzzleNodes: []
+  subPuzzleNodes:
+  - id: 0
+    numberOfPivots: 2
+    numberOfPieces: {x: 2, y: 2}
