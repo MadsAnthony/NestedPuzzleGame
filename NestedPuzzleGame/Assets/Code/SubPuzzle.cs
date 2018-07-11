@@ -98,12 +98,12 @@ public class SubPuzzle : MonoBehaviour {
 	private void ScramblePiecePosition(List<Piece> pieces) {
 		foreach (var piece in pieces) {
 			var x = sizeOfPicture.x * 0.5f;
-			var y = sizeOfPicture.x * 0.5f;
+			var y = sizeOfPicture.y * 0.5f;
 			var pieceScaleX = piece.transform.localScale.x*0.5f;
 			var pieceScaleY = piece.transform.localScale.x*0.5f;
 
 
-			var randomX =  UnityEngine.Random.Range ((-x+pieceScaleX)*100,(x-pieceScaleX)*100)*0.01f;
+			var randomX = UnityEngine.Random.Range ((-x+pieceScaleX)*100,(x-pieceScaleX)*100)*0.01f;
 			var randomY = UnityEngine.Random.Range ((-y+pieceScaleY)*100,(y-pieceScaleY)*100)*0.01f;
 			piece.transform.localPosition = new Vector3 (randomX,randomY,piece.transform.localPosition.z);
 		}

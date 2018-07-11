@@ -21,7 +21,13 @@ MonoBehaviour:
     numberOfPieces: {x: 2, y: 2}
   - id: 0-0
     numberOfPivots: 1
-    numberOfPieces: {x: 1, y: 2}
+    numberOfPieces: {x: 2, y: 1}
   - id: 0-1
     numberOfPivots: 1
     numberOfPieces: {x: 2, y: 2}
+  - id: 0-2
+    numberOfPivots: 2
+    numberOfPieces: {x: 2, y: 2}
+  - id: 0-3
+    numberOfPivots: 1
+    numberOfPieces: {x: 2, y: 3}

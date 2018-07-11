@@ -7,7 +7,7 @@ using Rotorz.ReorderableList;
 [CustomEditor(typeof(LevelAsset))]
 public class LevelInspector : Editor {
 	private RenderTexture editorRenderTexture;
-	private Vector2 windowOffset = new Vector2(20,100);
+	private Vector2 windowOffset = new Vector2(20,180);
 	private Vector2 windowSize = new Vector2(500,500);
 	private Color windowBackgroundColor = new Color (1,1,1,1);
 
@@ -23,6 +23,7 @@ public class LevelInspector : Editor {
 		var editorModeCached = editorMode;
 		string[] editorModeOptions = {"Select", "Add"};
 		editorMode = (EditorMode)EditorGUILayout.Popup ("Mode", (int)editorMode, editorModeOptions);
+		myTarget.picture = EditorGUILayout.ObjectField ("GoalTexture", myTarget.picture, typeof(Texture), false) as Texture;
 		if (GUILayout.Button ("Clear Nodes")) {
 			myTarget.subPuzzleNodes.Clear ();
 			myTarget.subPuzzleNodes.Add (new LevelAsset.SubPuzzleNode("0"));
