@@ -6,8 +6,8 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: GoalPictureMaterial
-  m_Shader: {fileID: 4800000, guid: 245a320f4875c204c8a1da24f14def77, type: 3}
+  m_Name: LevelPortraitBox
+  m_Shader: {fileID: 10750, guid: 0000000000000000f000000000000000, type: 0}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -39,7 +39,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 6d313820a7a9f8042a924f35b7007706, type: 3}
+        m_Texture: {fileID: 2800000, guid: 7a1762994c2bd1848b0c8c10f6df915f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -72,8 +72,5 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.3455882, g: 0.3455882, b: 0.3455882, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _v1: {r: 1, g: 0, b: 0, a: 0}
-    - _v2: {r: 0, g: 1, b: 0, a: 0}
-    - _v3: {r: 0, g: 0, b: 1, a: 0}

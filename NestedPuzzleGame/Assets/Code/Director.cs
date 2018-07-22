@@ -11,6 +11,7 @@ public class Director : MonoBehaviour  {
 
 	private int levelIndex = -1;
 	private int prevLevelIndex = -1;
+	public bool IsAlternativeLevel;
 	public int LevelIndex 
 	{
 		get {return levelIndex;}

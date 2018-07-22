@@ -49,6 +49,11 @@ public class GameBoard : MonoBehaviour {
 		goalPictureObject.transform.localScale = new Vector3 (pictureSize.x,pictureSize.y,goalPictureObject.transform.localScale.z);
 		goalPictureObject.transform.localPosition = new Vector3 (0,0,-1);
 		goalPictureObject.GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex", level.picture);
+		if (Director.Instance.IsAlternativeLevel) {
+			goalPictureObject.GetComponent<MeshRenderer> ().material.SetVector ("_v1", new Vector4 (0, 0, 1, 0));
+			goalPictureObject.GetComponent<MeshRenderer> ().material.SetVector ("_v2", new Vector4 (1, 0, 0, 0));
+			goalPictureObject.GetComponent<MeshRenderer> ().material.SetVector ("_v3", new Vector4 (0, 1, 0, 0));
+		}
 
 		var subPuzzle = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();
 		subPuzzle.transform.parent = transform;
@@ -101,7 +106,7 @@ public class GameBoard : MonoBehaviour {
 					} else {
 						goalPictureObject.SetActive (true);
 						var tempDict = Director.SaveData.LevelProgress;
-						tempDict[Director.Instance.LevelIndex.ToString()] = new LevelSaveData(true);
+						tempDict[Director.Instance.LevelIndex.ToString()+"_"+Director.Instance.IsAlternativeLevel.ToString()] = new LevelSaveData(true);
 						Director.SaveData.LevelProgress = tempDict;
 						Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("LevelSelectScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
 					}

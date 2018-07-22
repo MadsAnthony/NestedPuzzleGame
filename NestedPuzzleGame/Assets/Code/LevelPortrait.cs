@@ -5,6 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class LevelPortrait : MonoBehaviour {
 	[SerializeField] private int levelIndex;
+	[SerializeField] private MeshRenderer frontPicture;
+	[SerializeField] private MeshRenderer backPicture;
 
 	void Start() {
 		var level = Director.LevelDatabase.levels [levelIndex];
@@ -15,13 +17,23 @@ public class LevelPortrait : MonoBehaviour {
 
 		transform.localScale = pictureSize;
 
-		if (Director.SaveData.GetLevelSaveDataEntry (levelIndex.ToString ()) != null) {
-			GetComponent<MeshRenderer>().material.mainTexture = level.picture;
+		if (Director.SaveData.GetLevelSaveDataEntry (levelIndex.ToString ()+"_"+false.ToString()) != null) {
+			frontPicture.material.mainTexture = level.picture;
+		}
+		if (Director.SaveData.GetLevelSaveDataEntry (levelIndex.ToString ()+"_"+true.ToString()) != null) {
+			backPicture.material.mainTexture = level.picture;
 		}
 	}
 
-	void OnMouseDown() {
+	public void PlayLevel() {
 		Director.Instance.LevelIndex = levelIndex;
+		Director.Instance.IsAlternativeLevel = false;
+		SceneManager.LoadScene ("LevelScene");
+	}
+
+	public void PlayAlternativeLevel() {
+		Director.Instance.LevelIndex = levelIndex;
+		Director.Instance.IsAlternativeLevel = true;
 		SceneManager.LoadScene ("LevelScene");
 	}
 }
