@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class LevelSelectView : MonoBehaviour {
-	[SerializeField] private Camera camera;
 	[SerializeField] private List<GameObject> listOfLevels;
 	[SerializeField] private AnimationCurve easeInOutCurve;
 

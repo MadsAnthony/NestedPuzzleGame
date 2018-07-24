@@ -70,6 +70,7 @@ public class SubPuzzle : MonoBehaviour {
 
 		var scale = new Vector2(1f/piecesOnX, 1f/piecesOnY);
 
+		float pieceZPosition = -1;
 		for (int i = 0; i < piecesOnX; i++) {
 			for (int j = 0; j < piecesOnY; j++) {
 				var id = i.ToString () + j.ToString ();
@@ -81,16 +82,17 @@ public class SubPuzzle : MonoBehaviour {
 
 				var pieceObject = GameObject.Instantiate (piece).GetComponent<Piece>();
 				pieceObject.transform.parent = pivot.pivot.transform;
-				pieceObject.transform.localPosition = new Vector3 (0, 0, -1);
+				pieceObject.transform.localPosition = new Vector3 (0, 0, pieceZPosition);
 				pieceObject.transform.localScale = new Vector3(sizeOfPicture.x*scale.x,sizeOfPicture.y*scale.y,1);
 				pieceObject.id = id;
-				pieceObject.gameBoard = gameBoard;
-
+				
 				pieceObject.GetComponent<MeshRenderer> ().material.SetTextureScale ("_MainTex",scale);
 				pieceObject.GetComponent<MeshRenderer>().material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
 				pieceObject.GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex", texture);
 
 				pivot.pieces.Add (pieceObject);
+				
+				pieceZPosition += -0.1f;
 			}
 		}
 	}
@@ -248,6 +250,7 @@ public class SubPuzzle : MonoBehaviour {
 
 	public SnapablePoint GetPointWithinRadius(Vector3 point, float radius) {
 		foreach (var snapablePoint in snapablePoints) {
+			point.z = snapablePoint.position.z;
 			var dist = snapablePoint.position - point;
 			if (dist.magnitude < radius) {
 				return snapablePoint;
