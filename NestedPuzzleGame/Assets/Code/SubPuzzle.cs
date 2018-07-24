@@ -1,17 +1,20 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class SubPuzzle : MonoBehaviour {
 	[SerializeField] private GameObject piece;
 	[SerializeField] private Camera puzzleCamera;
-	[SerializeField] private Texture goalTexture;
+	[SerializeField] private Camera puzzleCameraCollectable;
 	[SerializeField] private GameObject background;
 	[SerializeField] private GameObject backgroundQuad;
 	[SerializeField] private SubPuzzleButton subPuzzleButton;
+	[SerializeField] private GameObject collectable;
 
 	private RenderTexture puzzleCameraTexture;
+	private RenderTexture puzzleCameraCollectableTexture;
 	
 	private GameBoard gameBoard;
 
@@ -32,7 +35,8 @@ public class SubPuzzle : MonoBehaviour {
 	private RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
 	private Vector2 sizeOfPicture;
 	private int additionalPieces;
-	
+
+	private GameObject collectableObject;
 	public void Initialize(GameBoard gameBoard, string id, int layer, Vector2 sizeOfPicture) {
 		if (Director.Instance.IsAlternativeLevel) {
 			additionalPieces = 1;
@@ -51,6 +55,12 @@ public class SubPuzzle : MonoBehaviour {
 		backgroundQuad.transform.localScale = new Vector3(sizeOfPicture.x,sizeOfPicture.y,1);
 		puzzleCameraTexture = new RenderTexture ((int)textureSize.x, (int)textureSize.y, 24, renderTextureFormat);
 		puzzleCamera.targetTexture = puzzleCameraTexture;
+		puzzleCameraCollectableTexture = new RenderTexture ((int)textureSize.x, (int)textureSize.y, 24, renderTextureFormat);
+		puzzleCameraCollectable.targetTexture = puzzleCameraCollectableTexture;
+
+		collectableObject = GameObject.Instantiate(collectable);
+		collectableObject.transform.parent = transform;
+		collectableObject.transform.localPosition = new Vector3(0,0,-2);
 	}
 
 	public void ActivateSubPuzzle() {
@@ -88,10 +98,11 @@ public class SubPuzzle : MonoBehaviour {
 				pieceObject.transform.localScale = new Vector3(sizeOfPicture.x*scale.x,sizeOfPicture.y*scale.y,1);
 				pieceObject.id = id;
 				
-				pieceObject.GetComponent<MeshRenderer> ().material.SetTextureScale ("_MainTex",scale);
-				pieceObject.GetComponent<MeshRenderer>().material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
-				pieceObject.GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex", texture);
+				pieceObject.PieceRenderer.material.SetTextureScale ("_MainTex",scale);
+				pieceObject.PieceRenderer.material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
+				pieceObject.PieceRenderer.material.SetTexture ("_MainTex", texture);
 
+				pieceObject.CollectableLayerRenderer.gameObject.SetActive(false);
 				pivot.pieces.Add (pieceObject);
 				
 				pieceZPosition += -0.1f;
@@ -99,6 +110,24 @@ public class SubPuzzle : MonoBehaviour {
 		}
 	}
 
+	private void SetupCollectableLayerForPieces(PuzzlePivot pivot) {
+		int piecesOnX = (int)nodeAsset.numberOfPieces.x+additionalPieces;
+		int piecesOnY = (int)nodeAsset.numberOfPieces.y+additionalPieces;
+
+		var scale = new Vector2(1f/piecesOnX, 1f/piecesOnY);
+
+		int i = 0;
+		foreach (var piece in pivot.pieces) {
+			var x = i%piecesOnX;
+			var y = Mathf.FloorToInt(i/piecesOnX);
+			piece.CollectableLayerRenderer.gameObject.SetActive(true);
+			piece.CollectableLayerRenderer.material.SetTextureScale ("_MainTex",scale);
+			piece.CollectableLayerRenderer.material.SetTextureOffset("_MainTex", new Vector2(x*scale.x,y*scale.y));
+			piece.CollectableLayerRenderer.material.SetTexture ("_MainTex", snapShotCollectableLayer);
+			i++;
+		}
+	}
+	
 	private void ScramblePiecePosition(List<Piece> pieces) {
 		foreach (var piece in pieces) {
 			var x = sizeOfPicture.x * 0.5f;
@@ -121,7 +150,7 @@ public class SubPuzzle : MonoBehaviour {
 		
 		foreach (var piece in pieces) {
 			var x = i%piecesOnX;
-			var y = Mathf.RoundToInt(i/piecesOnX);
+			var y = Mathf.FloorToInt(i/piecesOnX);
 			var space = new Vector3(x,y,0)*0.5f;
 			piece.transform.localPosition = space+new Vector3 (x*piece.transform.localScale.x,y*piece.transform.localScale.y,piece.transform.localPosition.z)+offset;
 			i += 1;
@@ -222,13 +251,23 @@ public class SubPuzzle : MonoBehaviour {
 	}
 
 	public Texture snapShot;
-	private void SpawnExtraPivot(GameObject pivot) {
-		HideAllPuzzlePivots ();
+	public Texture snapShotCollectableLayer;
+	private void TakeSnapShot() {
 		snapShot = new Texture2D ((int)textureSize.x, (int)textureSize.y, textureFormat, false);
 		Graphics.CopyTexture (puzzleCameraTexture, snapShot);
+		
+		snapShotCollectableLayer = new Texture2D ((int)textureSize.x, (int)textureSize.y, textureFormat, false);
+		Graphics.CopyTexture (puzzleCameraCollectableTexture, snapShotCollectableLayer);
+		collectableObject.SetActive(false);
+	}
+	
+	private void SpawnExtraPivot(GameObject pivot) {
+		HideAllPuzzlePivots ();
+		TakeSnapShot();
 		var puzzlePivot = new PuzzlePivot (pivot);
 		puzzlePivots.Add (puzzlePivot);
 		SpawnPieces (puzzlePivot, snapShot);
+		SetupCollectableLayerForPieces(puzzlePivot);
 		ScramblePiecePosition (puzzlePivot.pieces);
 		activePuzzlePivot = puzzlePivot;
 	}
