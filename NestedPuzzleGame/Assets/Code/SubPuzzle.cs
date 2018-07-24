@@ -113,7 +113,7 @@ public class SubPuzzle : MonoBehaviour {
 		var offset = new Vector3 (-1.5f,-4,0);
 		int i = 0;
 		
-		int piecesOnX = (int)GameBoard.NumberOfPieces.x;
+		int piecesOnX = (int)GameBoard.numberOfPieces.x;
 		
 		foreach (var piece in pieces) {
 			var x = i%piecesOnX;

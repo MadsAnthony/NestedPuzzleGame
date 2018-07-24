@@ -8,7 +8,6 @@ public class GameBoard : MonoBehaviour {
 	[SerializeField] public SubPuzzle subPuzzlePrefab;
 	[SerializeField] private AnimationCurve easeInOutCurve;
 	[SerializeField] private GameObject goalPicture;
-	[SerializeField] private Texture goalTexture;
 
 	public Piece draggablePiece;
 	public Vector3 draggablePieceOffset;
@@ -18,19 +17,16 @@ public class GameBoard : MonoBehaviour {
 	public SubPuzzle activeSubPuzzle;
 	private GameObject goalPictureObject;
 	private Vector3 startScale;
-	public static float ZoomScale = GameBoard.NumberOfPieces.x;
+	public static float ZoomScale;
 
 	private LevelAsset level;
 
 	public Dictionary<string,List<LevelAsset.SubPuzzleNode>> nodeAssetDictionary;
 	void Start () {
 		level = Director.LevelDatabase.levels [Director.Instance.LevelIndex];
+		numberOfPieces = level.numberOfPieces;
 		
-		GameBoard.numberOfLayers = level.numberOfLayers;
-		GameBoard.numberOfPivots = level.numberOfPivots;
-		GameBoard.numberOfPieces = level.numberOfPieces;
-		
-		ZoomScale = (float)GameBoard.NumberOfPieces.x;
+		ZoomScale = numberOfPieces.x;
 
 		startScale = transform.localScale;
 		nodeAssetDictionary = LevelAssetHelper.ConstructDictionary (level.subPuzzleNodes);
@@ -119,39 +115,7 @@ public class GameBoard : MonoBehaviour {
 	public void ZoomToLayer(int layerNumber) {
 		transform.localScale = startScale*Mathf.Pow(ZoomScale,layerNumber);
 	}
-
-	public static int numberOfLayers;
-	public static int NumberOfLayers { 
-		get 
-		{
-			if (DeveloperCheats.NumberOfLayers >= 0) {
-				return DeveloperCheats.NumberOfLayers;
-			}
-			return numberOfLayers;
-		}
-	}
-
-	public static int numberOfPivots;
-	public static int NumberOfPivots { 
-		get 
-		{
-			if (DeveloperCheats.NumberOfPivots > 0) {
-				return DeveloperCheats.NumberOfPivots;
-			}
-			return numberOfPivots;
-		}
-	}
-
 	public static Vector2 numberOfPieces;
-	public static Vector2 NumberOfPieces { 
-		get 
-		{
-			if (DeveloperCheats.NumberOfPiecesOnX > 0 || DeveloperCheats.NumberOfPiecesOnY>0) {
-				return new Vector2(DeveloperCheats.NumberOfPiecesOnX,DeveloperCheats.NumberOfPiecesOnY);
-			}
-			return numberOfPieces;
-		}
-	}
 
 	public IEnumerator ZoomOut() {
 		yield return new WaitForSeconds (0.5f);
