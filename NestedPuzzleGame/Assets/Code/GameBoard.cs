@@ -22,10 +22,15 @@ public class GameBoard : MonoBehaviour {
 
 	private LevelAsset level;
 
+	private int additionalPieces;
 	public Dictionary<string,List<LevelAsset.SubPuzzleNode>> nodeAssetDictionary;
 	void Start () {
+		if (Director.Instance.IsAlternativeLevel) {
+			additionalPieces = 1;
+		}
 		level = Director.LevelDatabase.levels [Director.Instance.LevelIndex];
-		numberOfPieces = level.numberOfPieces;
+		
+		numberOfPieces = level.numberOfPieces+new Vector2(additionalPieces,additionalPieces);
 		
 		ZoomScale = numberOfPieces.x;
 

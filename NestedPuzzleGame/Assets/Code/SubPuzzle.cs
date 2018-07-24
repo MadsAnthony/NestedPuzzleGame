@@ -31,11 +31,13 @@ public class SubPuzzle : MonoBehaviour {
 	private TextureFormat textureFormat = TextureFormat.ARGB32;
 	private RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
 	private Vector2 sizeOfPicture;
-	void Start () {
-		
-	}
-
+	private int additionalPieces;
+	
 	public void Initialize(GameBoard gameBoard, string id, int layer, Vector2 sizeOfPicture) {
+		if (Director.Instance.IsAlternativeLevel) {
+			additionalPieces = 1;
+		}
+		
 		this.gameBoard = gameBoard;
 		subPuzzleButton.gameBoard = gameBoard;
 		subPuzzleButton.subPuzzle = this;
@@ -65,8 +67,8 @@ public class SubPuzzle : MonoBehaviour {
 
 	
 	private void SpawnPieces(PuzzlePivot pivot, Texture texture) {
-		int piecesOnX = (int)nodeAsset.numberOfPieces.x;
-		int piecesOnY = (int)nodeAsset.numberOfPieces.y;
+		int piecesOnX = (int)nodeAsset.numberOfPieces.x+additionalPieces;
+		int piecesOnY = (int)nodeAsset.numberOfPieces.y+additionalPieces;
 
 		var scale = new Vector2(1f/piecesOnX, 1f/piecesOnY);
 
