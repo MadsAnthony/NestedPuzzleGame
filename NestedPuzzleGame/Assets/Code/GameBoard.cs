@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Opencoding.CommandHandlerSystem;
@@ -74,6 +75,24 @@ public class GameBoard : MonoBehaviour {
 	}
 
 	void Update() {
+		if (Input.GetMouseButtonDown(0)) {
+			var mousePosInWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+			mousePosInWorld.z = -10;
+			var hits = Physics.RaycastAll(mousePosInWorld, Vector3.forward, 100);
+			var hitsList = new List<RaycastHit>(hits);
+			hitsList = hitsList.OrderBy(x => x.transform.position.z).ToList();
+			foreach (var hit in hitsList) {
+				var piece = hit.collider.GetComponent<Piece>();
+				if (piece != null) {
+					var offSet = piece.transform.position - mousePosInWorld;
+					offSet.z = 0;
+					draggablePieceOffset = offSet;
+					draggablePiece = piece;
+					break;
+				}
+			}
+		}
+
 		if (draggablePiece != null) {
 			var mousePos = Camera.main.ScreenToWorldPoint (Input.mousePosition);
 			draggablePiece.transform.position = new Vector3(mousePos.x,mousePos.y,draggablePiece.transform.position.z)+draggablePieceOffset;
@@ -82,7 +101,7 @@ public class GameBoard : MonoBehaviour {
 		if (Input.GetMouseButtonUp (0) && (draggablePiece != null)) {
 			var snapablePoint = activeSubPuzzle.GetPointWithinRadius (draggablePiece.transform.localPosition, 0.2f);
 			if (snapablePoint != null) {
-				draggablePiece.transform.localPosition = snapablePoint.position;
+				draggablePiece.transform.localPosition = new Vector3(snapablePoint.position.x, snapablePoint.position.y, draggablePiece.transform.localPosition.z);
 			}
 
 			draggablePiece = null;
@@ -111,7 +130,7 @@ public class GameBoard : MonoBehaviour {
 			}
 		}
 	}
-
+		
 	public void ZoomToLayer(int layerNumber) {
 		transform.localScale = startScale*Mathf.Pow(ZoomScale,layerNumber);
 	}
