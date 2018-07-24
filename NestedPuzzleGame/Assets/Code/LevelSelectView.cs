@@ -21,7 +21,7 @@ public class LevelSelectView : MonoBehaviour {
 			mousePosInWorld.z = -1;
 			var hits = Physics.RaycastAll(mousePosInWorld, Vector3.forward, 100);
 			if (hits.Length > 0) {
-				var levelPortrait = hits [0].transform.parent.GetComponent<LevelPortrait> ();
+				var levelPortrait = hits [0].transform.GetComponentInParent<LevelPortrait> ();
 				if (levelPortrait != null) {
 					if (hits [0].transform.name.Contains ("Front")) {
 						levelPortrait.PlayLevel ();

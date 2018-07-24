@@ -7,6 +7,8 @@ public class LevelPortrait : MonoBehaviour {
 	[SerializeField] private int levelIndex;
 	[SerializeField] private MeshRenderer frontPicture;
 	[SerializeField] private MeshRenderer backPicture;
+	[SerializeField] private GameObject picturePivot;
+	[SerializeField] private GameObject picturePanel;
 
 	void Start() {
 		var level = Director.LevelDatabase.levels [levelIndex];
@@ -15,8 +17,8 @@ public class LevelPortrait : MonoBehaviour {
 		var aspectRatio = (float)level.picture.height/level.picture.width;
 		var pictureSize = new Vector3(scale, scale*aspectRatio, 1);
 
-		transform.localScale = pictureSize;
-
+		picturePivot.transform.localScale = pictureSize;
+		picturePanel.transform.localPosition = new Vector3(0,1+pictureSize.y/2f,0);
 		if (Director.SaveData.GetLevelSaveDataEntry (levelIndex.ToString ()+"_"+false.ToString()) != null) {
 			frontPicture.material.mainTexture = level.picture;
 		}
