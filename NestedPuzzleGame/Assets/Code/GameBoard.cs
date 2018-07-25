@@ -19,6 +19,7 @@ public class GameBoard : MonoBehaviour {
 	private GameObject goalPictureObject;
 	private Vector3 startScale;
 	public static float ZoomScale;
+	public bool hasCollectedCollectable;
 
 	private LevelAsset level;
 
@@ -89,11 +90,20 @@ public class GameBoard : MonoBehaviour {
 			foreach (var hit in hitsList) {
 				var piece = hit.collider.GetComponent<Piece>();
 				if (piece != null) {
+					var snapablePoint = activeSubPuzzle.GetPointWithinRadius (piece.transform.localPosition, 0.2f);
+					if (snapablePoint != null) {
+						snapablePoint.piece = null;
+					}
+
 					var offSet = piece.transform.position - mousePosInWorld;
 					offSet.z = 0;
 					draggablePieceOffset = offSet;
 					draggablePiece = piece;
 					break;
+				}
+				if (hit.collider.name.Contains("Star")) {
+					hasCollectedCollectable = true;
+					hit.collider.gameObject.SetActive(false);
 				}
 			}
 		}
@@ -107,6 +117,7 @@ public class GameBoard : MonoBehaviour {
 			var snapablePoint = activeSubPuzzle.GetPointWithinRadius (draggablePiece.transform.localPosition, 0.2f);
 			if (snapablePoint != null) {
 				draggablePiece.transform.localPosition = new Vector3(snapablePoint.position.x, snapablePoint.position.y, draggablePiece.transform.localPosition.z);
+				snapablePoint.piece = draggablePiece;
 			}
 
 			draggablePiece = null;

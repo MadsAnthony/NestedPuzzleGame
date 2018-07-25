@@ -16,10 +16,10 @@ public class LevelView : MonoBehaviour {
 		Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("LevelSelectScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
 	}
 
-	private bool isCollectableLayerOn;
+	public static bool IsCollectableLayerOn;
 	public void ToggleCollectableLayer() {
-		isCollectableLayerOn = !isCollectableLayerOn;
-		if (isCollectableLayerOn) {
+		IsCollectableLayerOn = !IsCollectableLayerOn;
+		if (IsCollectableLayerOn) {
 			mainCamera.cullingMask |= (1 << LayerMask.NameToLayer("CollectableLayer"));
 		} else {
 			mainCamera.cullingMask &= ~(1 << LayerMask.NameToLayer("CollectableLayer"));
