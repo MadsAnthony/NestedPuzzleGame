@@ -88,19 +88,23 @@ public class GameBoard : MonoBehaviour {
 			var hitsList = new List<RaycastHit>(hits);
 			hitsList = hitsList.OrderBy(x => x.transform.position.z).ToList();
 			foreach (var hit in hitsList) {
-				var piece = hit.collider.GetComponent<Piece>();
-				if (piece != null) {
-					var snapablePoint = activeSubPuzzle.GetPointWithinRadius (piece.transform.localPosition, 0.2f);
-					if (snapablePoint != null) {
-						snapablePoint.piece = null;
-					}
+				if (!LevelView.IsCollectableLayerOn) {
+					var piece = hit.collider.GetComponent<Piece>();
+					if (piece != null) {
+						var snapablePoint = activeSubPuzzle.GetPointWithinRadius(piece.transform.localPosition, 0.2f);
+						if (snapablePoint != null)
+						{
+							snapablePoint.piece = null;
+						}
 
-					var offSet = piece.transform.position - mousePosInWorld;
-					offSet.z = 0;
-					draggablePieceOffset = offSet;
-					draggablePiece = piece;
-					break;
+						var offSet = piece.transform.position - mousePosInWorld;
+						offSet.z = 0;
+						draggablePieceOffset = offSet;
+						draggablePiece = piece;
+						break;
+					}
 				}
+
 				if (hit.collider.name.Contains("Star")) {
 					hasCollectedCollectable = true;
 					hit.collider.gameObject.SetActive(false);
@@ -137,7 +141,17 @@ public class GameBoard : MonoBehaviour {
 					} else {
 						goalPictureObject.SetActive (true);
 						var tempDict = Director.SaveData.LevelProgress;
-						tempDict[Director.Instance.LevelIndex.ToString()+"_"+Director.Instance.IsAlternativeLevel.ToString()] = new LevelSaveData(true, hasCollectedCollectable);
+						var id = Director.Instance.LevelIndex.ToString() + "_" + Director.Instance.IsAlternativeLevel.ToString();
+						var levelSave = Director.SaveData.GetLevelSaveDataEntry(id);
+						if (levelSave == null) {
+							tempDict[id] = new LevelSaveData(true, hasCollectedCollectable);
+						} else {
+							if (hasCollectedCollectable){
+								levelSave.gotCollectable = true;
+							}
+							tempDict[id] = levelSave;
+						}
+
 						Director.SaveData.LevelProgress = tempDict;
 						Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("LevelSelectScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
 					}

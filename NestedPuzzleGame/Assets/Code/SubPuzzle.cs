@@ -358,8 +358,6 @@ public class SubPuzzle : MonoBehaviour {
 	}
 
 	public bool CheckForWin() {
-		CheckForCollectable();
-		
 		foreach(var piece in activePuzzlePivot.pieces) {
 			var snapablePoint = GetPointWithinRadius (piece.transform.localPosition, 0.2f);
 			if (snapablePoint == null || snapablePoint.id != piece.id) {
@@ -369,7 +367,7 @@ public class SubPuzzle : MonoBehaviour {
 		return true;
 	}
 
-	private void CheckForCollectable() {
+	public void CheckForCollectable() {
 		if (!LevelView.IsCollectableLayerOn || gameBoard.hasCollectedCollectable || activePuzzlePivot.collectableObject == null) return;
 		if (activePuzzlePivot.collectableObject.activeSelf) return;
 		var collectableSnapablePoint = GetSnapablePointWithPieceId(activePuzzlePivot, collectableKeyPieceDictionary.keyPiece.id);
@@ -386,7 +384,6 @@ public class SubPuzzle : MonoBehaviour {
 			offset.z = 0;
 			activePuzzlePivot.collectableObject.transform.localPosition -= offset;
 			activePuzzlePivot.collectableObject.SetActive(true);
-			activePuzzlePivot.collectableObject.layer = 0;
 
 			foreach(var piece in activePuzzlePivot.pieces) {
 				piece.CollectableLayerRenderer.gameObject.SetActive(false);
