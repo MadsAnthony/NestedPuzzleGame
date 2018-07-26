@@ -137,7 +137,7 @@ public class GameBoard : MonoBehaviour {
 					} else {
 						goalPictureObject.SetActive (true);
 						var tempDict = Director.SaveData.LevelProgress;
-						tempDict[Director.Instance.LevelIndex.ToString()+"_"+Director.Instance.IsAlternativeLevel.ToString()] = new LevelSaveData(true);
+						tempDict[Director.Instance.LevelIndex.ToString()+"_"+Director.Instance.IsAlternativeLevel.ToString()] = new LevelSaveData(true, hasCollectedCollectable);
 						Director.SaveData.LevelProgress = tempDict;
 						Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("LevelSelectScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
 					}

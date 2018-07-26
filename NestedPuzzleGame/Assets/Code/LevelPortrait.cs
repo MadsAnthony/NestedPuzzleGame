@@ -9,6 +9,7 @@ public class LevelPortrait : MonoBehaviour {
 	[SerializeField] private MeshRenderer backPicture;
 	[SerializeField] private GameObject picturePivot;
 	[SerializeField] private GameObject picturePanel;
+	[SerializeField] private MeshRenderer collectable;
 
 	void Start() {
 		var level = Director.LevelDatabase.levels [levelIndex];
@@ -18,11 +19,16 @@ public class LevelPortrait : MonoBehaviour {
 		var pictureSize = new Vector3(scale, scale*aspectRatio, 1);
 
 		picturePivot.transform.localScale = pictureSize;
-		picturePanel.transform.localPosition = new Vector3(0,1+pictureSize.y/2f,0);
-		if (Director.SaveData.GetLevelSaveDataEntry (levelIndex.ToString ()+"_"+false.ToString()) != null) {
+		picturePanel.transform.localPosition = new Vector3(0,1.2f+pictureSize.y/2f,0);
+		var levelSaveNormal = Director.SaveData.GetLevelSaveDataEntry(levelIndex.ToString() + "_" + false.ToString());
+		var levelSaveAlternative = Director.SaveData.GetLevelSaveDataEntry(levelIndex.ToString() + "_" + true.ToString());
+		if (levelSaveNormal != null) {
 			frontPicture.material.mainTexture = level.picture;
+			if (levelSaveNormal.gotCollectable) {
+				collectable.material.color = Color.white;
+			}
 		}
-		if (Director.SaveData.GetLevelSaveDataEntry (levelIndex.ToString ()+"_"+true.ToString()) != null) {
+		if (levelSaveAlternative != null) {
 			backPicture.material.mainTexture = level.picture;
 		}
 	}

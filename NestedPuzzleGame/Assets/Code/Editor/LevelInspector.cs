@@ -54,6 +54,11 @@ public class LevelInspector : Editor {
 
 			selectedNodeAsset.numberOfPivots = EditorGUILayout.IntField ("Number of Pivots:", selectedNodeAsset.numberOfPivots);
 			selectedNodeAsset.numberOfPieces = EditorGUILayout.Vector2Field ("Number of Pieces:", selectedNodeAsset.numberOfPieces);
+			selectedNodeAsset.collectable.isActive = EditorGUILayout.Toggle("Has Collectable:", selectedNodeAsset.collectable.isActive);
+			if (selectedNodeAsset.collectable.isActive) {
+				selectedNodeAsset.collectable.position = EditorGUILayout.Vector2Field ("Position of collectable:", selectedNodeAsset.collectable.position);
+				selectedNodeAsset.collectable.scale = EditorGUILayout.Vector2Field ("Scale of collectable:", selectedNodeAsset.collectable.scale);
+			}
 
 			EditorGUILayout.EndVertical ();
 			if(GUILayout.Button("Add Node")) {

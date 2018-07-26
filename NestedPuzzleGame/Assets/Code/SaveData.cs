@@ -33,8 +33,10 @@ public class SaveData {
 [System.Serializable]
 public class LevelSaveData {
 	public bool completed;
+	public bool gotCollectable;
 
-	public LevelSaveData(bool completed) {
-		this.completed	  = completed;
+	public LevelSaveData(bool completed, bool gotCollectable) {
+		this.completed = completed;
+		this.gotCollectable = gotCollectable;
 	}
 }

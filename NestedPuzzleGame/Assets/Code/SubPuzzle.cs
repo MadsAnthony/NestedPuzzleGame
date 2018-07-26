@@ -18,7 +18,6 @@ public class SubPuzzle : MonoBehaviour {
 	
 	private GameBoard gameBoard;
 
-	private List<SnapablePoint> snapablePoints = new List<SnapablePoint>();
 	private RenderTexture puzzleTexture;
 
 	private List<PuzzlePivot> puzzlePivots = new List<PuzzlePivot>();
@@ -35,8 +34,7 @@ public class SubPuzzle : MonoBehaviour {
 	private RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
 	private Vector2 sizeOfPicture;
 	private int additionalPieces;
-
-	private GameObject collectableObject;
+	
 	public void Initialize(GameBoard gameBoard, string id, int layer, Vector2 sizeOfPicture) {
 		if (Director.Instance.IsAlternativeLevel) {
 			additionalPieces = 1;
@@ -51,16 +49,13 @@ public class SubPuzzle : MonoBehaviour {
 		nodeAsset = LevelAssetHelper.GetNodeAsset (gameBoard.nodeAssetDictionary, id);
 
 		textureSize = new Vector2 (sizeOfPicture.x,sizeOfPicture.y)*120;
-		puzzleCamera.orthographicSize = sizeOfPicture.y/2;
 		backgroundQuad.transform.localScale = new Vector3(sizeOfPicture.x,sizeOfPicture.y,1);
 		puzzleCameraTexture = new RenderTexture ((int)textureSize.x, (int)textureSize.y, 24, renderTextureFormat);
 		puzzleCamera.targetTexture = puzzleCameraTexture;
+		puzzleCamera.orthographicSize = sizeOfPicture.y/2;
 		puzzleCameraCollectableTexture = new RenderTexture ((int)textureSize.x, (int)textureSize.y, 24, renderTextureFormat);
 		puzzleCameraCollectable.targetTexture = puzzleCameraCollectableTexture;
-
-		collectableObject = GameObject.Instantiate(collectable);
-		collectableObject.transform.parent = transform;
-		collectableObject.transform.localPosition = new Vector3(0,1,-2);
+		puzzleCameraCollectable.orthographicSize = sizeOfPicture.y/2;
 	}
 
 	public void ActivateSubPuzzle() {
@@ -90,7 +85,7 @@ public class SubPuzzle : MonoBehaviour {
 				var midPointX = sizeOfPicture.x*(scale.x*(i+0.5f)-0.5f);
 				var midPointY = sizeOfPicture.y*(scale.y*(j+0.5f)-0.5f);
 				var newSnapablePoint = new SnapablePoint (id, new Vector3 (midPointX, midPointY, -1));
-				snapablePoints.Add(newSnapablePoint);
+				pivot.snapablePoints.Add(newSnapablePoint);
 
 				var pieceObject = GameObject.Instantiate (piece).GetComponent<Piece>();
 				pieceObject.transform.parent = pivot.pivot.transform;
@@ -111,9 +106,6 @@ public class SubPuzzle : MonoBehaviour {
 	}
 
 	private void SetupCollectableLayerForPieces(PuzzlePivot pivot){
-		// This is a hacky fix - to prevent a crash. Proper fix is to change CheckForWin to use new formation checking system.
-		if (snapablePoints.Count > pivot.pieces.Count) return;
-		
 		int piecesOnX = (int)nodeAsset.numberOfPieces.x+additionalPieces;
 		int piecesOnY = (int)nodeAsset.numberOfPieces.y+additionalPieces;
 
@@ -132,31 +124,31 @@ public class SubPuzzle : MonoBehaviour {
 		}
 		
 		i = 0;
-		foreach (var snapablePoint in snapablePoints) {
+		foreach (var snapablePoint in pivot.snapablePoints) {
 			shuffledPieces[i].transform.localPosition = snapablePoint.position;
 			snapablePoint.piece = shuffledPieces[i];
 			i++;
 		}
-
-		var importantPieces = GetImportantPieces();
-		collectableKeyPieceDictionary = SetupKeyPieceDictionary(importantPieces);
 		
-		foreach (var snapablePoint in snapablePoints) {
+		var importantPieces = GetImportantPieces(pivot);
+		collectableKeyPieceDictionary = SetupKeyPieceDictionary(pivot, importantPieces);
+		
+		foreach (var snapablePoint in pivot.snapablePoints) {
 			snapablePoint.piece = null;
 		}
 	}
 
-	private List<Piece> GetImportantPieces() {
+	private List<Piece> GetImportantPieces(PuzzlePivot pivot) {
 		var result = new List<Piece>();
-		var collectablePosition = new Vector2(collectableObject.transform.position.x-collectableObject.transform.localScale.x/2f,
-											  collectableObject.transform.position.y-collectableObject.transform.localScale.y/2f);
-		var collectableScale = new Vector2(collectableObject.transform.localScale.x,collectableObject.transform.localScale.y);
+		var collectablePosition = new Vector2(pivot.collectableObject.transform.position.x-pivot.collectableObject.transform.localScale.x/2f,
+											  pivot.collectableObject.transform.position.y-pivot.collectableObject.transform.localScale.y/2f);
+		var collectableScale = new Vector2(pivot.collectableObject.transform.localScale.x, pivot.collectableObject.transform.localScale.y);
 		var collectableRect = new Rect(collectablePosition, collectableScale);
 		
-		foreach (var snapablePoint in snapablePoints) {
+		foreach (var snapablePoint in pivot.snapablePoints) {
 			var piecePosition = new Vector2(snapablePoint.piece.transform.position.x-snapablePoint.piece.transform.localScale.x/2f,
 											snapablePoint.piece.transform.position.y-snapablePoint.piece.transform.localScale.y/2f);
-			var pieceScale = new Vector2(snapablePoint.piece.transform.localScale.x,snapablePoint.piece.transform.localScale.y);
+			var pieceScale = new Vector2(snapablePoint.piece.transform.localScale.x, snapablePoint.piece.transform.localScale.y);
 			var pieceRect = new Rect(piecePosition, pieceScale);
 
 			if (pieceRect.Overlaps(collectableRect)) {
@@ -196,13 +188,23 @@ public class SubPuzzle : MonoBehaviour {
 	}
 
 	private IEnumerator SpawnExtraPivots(GameObject pivot, int numberOfPivots) {
+		var newPuzzlePivots = new List<PuzzlePivot>();
+		for (int i = 0; i < numberOfPivots; i++) {
+			var newPuzzlePivot = SpawnExtraPivot(pivot);
+			newPuzzlePivots.Add(newPuzzlePivot);
+
+			if (nodeAsset.collectable.isActive && i == numberOfPivots-1) {
+				SpawnCollectable(newPuzzlePivot);
+			}
+		}
+		
 		// Wait 3 frames
 		for (int i = 0; i < 3; i++) {
 			yield return null;
 		}
 
-		for (int i = 0; i < numberOfPivots; i++) {
-			SpawnExtraPivot (pivot);
+		foreach (var newPuzzlePivot in newPuzzlePivots) {
+			SetupExtraPivot (newPuzzlePivot);
 			yield return null;
 		}
 
@@ -290,22 +292,39 @@ public class SubPuzzle : MonoBehaviour {
 
 	public Texture snapShot;
 	public Texture snapShotCollectableLayer;
-	private void TakeSnapShot() {
+	private void TakeSnapShot(PuzzlePivot pivot) {
 		snapShot = new Texture2D ((int)textureSize.x, (int)textureSize.y, textureFormat, false);
 		Graphics.CopyTexture (puzzleCameraTexture, snapShot);
-		
-		snapShotCollectableLayer = new Texture2D ((int)textureSize.x, (int)textureSize.y, textureFormat, false);
-		Graphics.CopyTexture (puzzleCameraCollectableTexture, snapShotCollectableLayer);
-		collectableObject.SetActive(false);
+
+		if (pivot.collectableObject != null) {
+			snapShotCollectableLayer = new Texture2D((int) textureSize.x, (int) textureSize.y, textureFormat, false);
+			Graphics.CopyTexture(puzzleCameraCollectableTexture, snapShotCollectableLayer);
+			pivot.collectableObject.SetActive(false);
+		}
 	}
-	
-	private void SpawnExtraPivot(GameObject pivot) {
+
+	private PuzzlePivot SpawnExtraPivot(GameObject pivot) {
+		var puzzlePivot = new PuzzlePivot(pivot);
+		return puzzlePivot;
+	}
+
+	private void SpawnCollectable(PuzzlePivot puzzlePivot) {
+		puzzlePivot.collectableObject = GameObject.Instantiate(collectable);
+		puzzlePivot.collectableObject.transform.parent = puzzlePivot.pivot.transform;
+		puzzlePivot.collectableObject.transform.localPosition = new Vector3(nodeAsset.collectable.position.x,nodeAsset.collectable.position.y,-2);
+		puzzlePivot.collectableObject.transform.localScale = new Vector3(nodeAsset.collectable.scale.x,nodeAsset.collectable.scale.y,1);
+	}
+
+	private void SetupExtraPivot(PuzzlePivot puzzlePivot) {
 		HideAllPuzzlePivots ();
-		TakeSnapShot();
-		var puzzlePivot = new PuzzlePivot (pivot);
+		TakeSnapShot(puzzlePivot);
+		
 		puzzlePivots.Add (puzzlePivot);
 		SpawnPieces (puzzlePivot, snapShot);
-		SetupCollectableLayerForPieces(puzzlePivot);
+		if (puzzlePivot.collectableObject != null) {
+			SetupCollectableLayerForPieces(puzzlePivot);
+		}
+
 		ScramblePiecePosition (puzzlePivot.pieces);
 		activePuzzlePivot = puzzlePivot;
 	}
@@ -328,7 +347,7 @@ public class SubPuzzle : MonoBehaviour {
 	}
 
 	public SnapablePoint GetPointWithinRadius(Vector3 point, float radius) {
-		foreach (var snapablePoint in snapablePoints) {
+		foreach (var snapablePoint in activePuzzlePivot.snapablePoints) {
 			point.z = snapablePoint.position.z;
 			var dist = snapablePoint.position - point;
 			if (dist.magnitude < radius) {
@@ -351,8 +370,9 @@ public class SubPuzzle : MonoBehaviour {
 	}
 
 	private void CheckForCollectable() {
-		if (!LevelView.IsCollectableLayerOn || gameBoard.hasCollectedCollectable) return;
-		var collectableSnapablePoint = GetSnapablePointWithPieceId(collectableKeyPieceDictionary.keyPiece.id);
+		if (!LevelView.IsCollectableLayerOn || gameBoard.hasCollectedCollectable || activePuzzlePivot.collectableObject == null) return;
+		if (activePuzzlePivot.collectableObject.activeSelf) return;
+		var collectableSnapablePoint = GetSnapablePointWithPieceId(activePuzzlePivot, collectableKeyPieceDictionary.keyPiece.id);
 
 		if (collectableSnapablePoint != null) {
 			foreach (var piecePairValue in collectableKeyPieceDictionary.pieceDictionary) {
@@ -361,8 +381,12 @@ public class SubPuzzle : MonoBehaviour {
 				var snapablePiece = snapablePoint.piece;
 				if (snapablePiece == null || snapablePiece.id != piecePairValue.Value) return;
 			}
-			collectableObject.SetActive(true);
-			collectableObject.layer = 0;
+
+			var offset = collectableKeyPieceDictionary.originalPosition-collectableSnapablePoint.piece.transform.localPosition;
+			offset.z = 0;
+			activePuzzlePivot.collectableObject.transform.localPosition -= offset;
+			activePuzzlePivot.collectableObject.SetActive(true);
+			activePuzzlePivot.collectableObject.layer = 0;
 
 			foreach(var piece in activePuzzlePivot.pieces) {
 				piece.CollectableLayerRenderer.gameObject.SetActive(false);
@@ -383,18 +407,18 @@ public class SubPuzzle : MonoBehaviour {
 
 	private KeyPieceDictionary collectableKeyPieceDictionary;
 
-	private KeyPieceDictionary SetupKeyPieceDictionary(List<Piece> pieces){
+	private KeyPieceDictionary SetupKeyPieceDictionary(PuzzlePivot pivot, List<Piece> pieces){
 		var keyPiece = pieces[0];
 		pieces.Remove(keyPiece);
 		var keyPieceDictionary = new KeyPieceDictionary(keyPiece);
 		
-		var keyPieceSnapablePoint = GetSnapablePointWithPieceId(keyPiece.id);
-		var keyPieceId = snapablePoints.IndexOf(keyPieceSnapablePoint);
+		var keyPieceSnapablePoint = GetSnapablePointWithPieceId(pivot, keyPiece.id);
+		var keyPieceId = pivot.snapablePoints.IndexOf(keyPieceSnapablePoint);
 		
 		foreach (var piece in pieces) {
-			var snapablePoint = GetSnapablePointWithPieceId(piece.id);
+			var snapablePoint = GetSnapablePointWithPieceId(pivot, piece.id);
 
-			var relativePos = GetRelativePosition(keyPieceId, snapablePoints.IndexOf(snapablePoint));
+			var relativePos = GetRelativePosition(keyPieceId, pivot.snapablePoints.IndexOf(snapablePoint));
 			keyPieceDictionary.pieceDictionary.Add(relativePos,piece.id);
 		}
 
@@ -402,22 +426,22 @@ public class SubPuzzle : MonoBehaviour {
 	}
 
 	private SnapablePoint GetSnapablePointFromRelativePosition(SnapablePoint currentSnapablePoint, Vector2 relativePosition) {
-		var index = snapablePoints.IndexOf(currentSnapablePoint);
+		var index = activePuzzlePivot.snapablePoints.IndexOf(currentSnapablePoint);
 		int piecesOnY = (int)nodeAsset.numberOfPieces.y+additionalPieces;
 
 		var newX = index + relativePosition.x*piecesOnY;
 		var newY = index + relativePosition.y;
 		
-		if (newX < 0 || newX >= snapablePoints.Count) return null;
-		if (newY < 0 || newY >= snapablePoints.Count) return null;
+		if (newX < 0 || newX >= activePuzzlePivot.snapablePoints.Count) return null;
+		if (newY < 0 || newY >= activePuzzlePivot.snapablePoints.Count) return null;
 		
-		if (newY < 0 || newY >= snapablePoints.Count) return null;
+		if (newY < 0 || newY >= activePuzzlePivot.snapablePoints.Count) return null;
 		
 		if (Mathf.FloorToInt(newY/piecesOnY) != Mathf.FloorToInt((float)index/piecesOnY)) return null;
 
 		var newIndex = (int)(newX + relativePosition.y);
 		
-		return snapablePoints[newIndex];
+		return activePuzzlePivot.snapablePoints[newIndex];
 	}
 	
 	private Vector2 GetRelativePosition(int currentIndex, int otherIndex) {
@@ -432,8 +456,8 @@ public class SubPuzzle : MonoBehaviour {
 		return new Vector2(otherX-currentX, otherY-currentY);
 	}
 	
-	private SnapablePoint GetSnapablePointWithPieceId(string id) {
-		foreach (var snapablePoint in snapablePoints) {
+	private SnapablePoint GetSnapablePointWithPieceId(PuzzlePivot pivot, string id) {
+		foreach (var snapablePoint in pivot.snapablePoints) {
 			if (snapablePoint.piece != null && snapablePoint.piece.id == id) {
 				return snapablePoint;
 			}
@@ -443,30 +467,30 @@ public class SubPuzzle : MonoBehaviour {
 	}
 	
 	public SnapablePoint GetSnapablePointFromDirection(SnapablePoint currentSnapablePoint, Direction direction) {
-		var index = snapablePoints.IndexOf(currentSnapablePoint);
+		var index = activePuzzlePivot.snapablePoints.IndexOf(currentSnapablePoint);
 		int piecesOnY = (int)nodeAsset.numberOfPieces.y+additionalPieces;
 		
 		if (direction == Direction.Right) {
 			var newIndex = index + piecesOnY;
-			if (newIndex < 0 || newIndex >= snapablePoints.Count) return null;
-			return snapablePoints[newIndex];
+			if (newIndex < 0 || newIndex >= activePuzzlePivot.snapablePoints.Count) return null;
+			return activePuzzlePivot.snapablePoints[newIndex];
 		}
 		if (direction == Direction.Left) {
 			var newIndex = index - piecesOnY;
-			if (newIndex < 0 || newIndex >= snapablePoints.Count) return null;
-			return snapablePoints[newIndex];
+			if (newIndex < 0 || newIndex >= activePuzzlePivot.snapablePoints.Count) return null;
+			return activePuzzlePivot.snapablePoints[newIndex];
 		}
 		if (direction == Direction.Up) {
 			var newIndex = index + 1;
 			if (newIndex%piecesOnY == 0) return null;
-			if (newIndex < 0 || newIndex >= snapablePoints.Count) return null;
-			return snapablePoints[newIndex];
+			if (newIndex < 0 || newIndex >= activePuzzlePivot.snapablePoints.Count) return null;
+			return activePuzzlePivot.snapablePoints[newIndex];
 		}
 		if (direction == Direction.Down) {
 			var newIndex = index - 1;
 			if (index%piecesOnY == 0) return null;
-			if (newIndex < 0 || newIndex >= snapablePoints.Count) return null;
-			return snapablePoints[newIndex];
+			if (newIndex < 0 || newIndex >= activePuzzlePivot.snapablePoints.Count) return null;
+			return activePuzzlePivot.snapablePoints[newIndex];
 		}
 		return null;
 	}
@@ -485,6 +509,8 @@ public class SubPuzzle : MonoBehaviour {
 	public class PuzzlePivot {
 		public GameObject pivot;
 		public List<Piece> pieces = new List<Piece>();
+		public List<SnapablePoint> snapablePoints = new List<SnapablePoint>();
+		public GameObject collectableObject;
 
 		public PuzzlePivot(GameObject parent) {
 			pivot = new GameObject();
@@ -495,10 +521,12 @@ public class SubPuzzle : MonoBehaviour {
 
 	public class KeyPieceDictionary {
 		public readonly Piece keyPiece;
+		public readonly Vector3 originalPosition;
 		public Dictionary<Vector2, string> pieceDictionary = new Dictionary<Vector2, string>();
-
+		
 		public KeyPieceDictionary(Piece keyPiece) {
 			this.keyPiece = keyPiece;
+			originalPosition = keyPiece.transform.localPosition;
 		}
 	}
 }

@@ -19,3 +19,7 @@ MonoBehaviour:
   - id: 0
     numberOfPivots: 1
     numberOfPieces: {x: 2, y: 3}
+    collectable:
+      isActive: 1
+      position: {x: 0, y: 0}
+      scale: {x: 1, y: 1}
