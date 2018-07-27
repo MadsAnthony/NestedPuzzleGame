@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -108,6 +109,19 @@ public class GameBoard : MonoBehaviour {
 				if (hit.collider.name.Contains("Star")) {
 					hasCollectedCollectable = true;
 					hit.collider.gameObject.SetActive(false);
+					
+					// Save
+					var tempDict = Director.SaveData.LevelProgress;
+					var id = Director.Instance.LevelIndex.ToString() + "_" + Director.Instance.IsAlternativeLevel.ToString();
+					var levelSave = Director.SaveData.GetLevelSaveDataEntry(id);
+					if (levelSave != null && !levelSave.gotCollectable) {
+						if (hasCollectedCollectable){
+							Director.Instance.levelExitState |= LevelExitState.GotCollectable;
+							levelSave.gotCollectable = true;
+						}
+						tempDict[id] = levelSave;
+					}
+					Director.SaveData.LevelProgress = tempDict;
 				}
 			}
 		}
@@ -144,9 +158,11 @@ public class GameBoard : MonoBehaviour {
 						var id = Director.Instance.LevelIndex.ToString() + "_" + Director.Instance.IsAlternativeLevel.ToString();
 						var levelSave = Director.SaveData.GetLevelSaveDataEntry(id);
 						if (levelSave == null) {
+							Director.Instance.levelExitState |= LevelExitState.LevelCompleted;
 							tempDict[id] = new LevelSaveData(true, hasCollectedCollectable);
 						} else {
-							if (hasCollectedCollectable){
+							if (hasCollectedCollectable && !levelSave.gotCollectable){
+								Director.Instance.levelExitState |= LevelExitState.GotCollectable;
 								levelSave.gotCollectable = true;
 							}
 							tempDict[id] = levelSave;
@@ -205,4 +221,11 @@ public class GameBoard : MonoBehaviour {
 			yield return null;
 		}
 	}
+}
+
+[Flags]
+public enum LevelExitState {
+	None 			= 0,
+	LevelCompleted 	= 1 << 0,
+	GotCollectable	= 2 << 1
 }

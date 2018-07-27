@@ -9,9 +9,10 @@ public class Director : MonoBehaviour  {
 	[SerializeField] private LevelDatabase levelDatabase;
 	[SerializeField] private SoundDatabase soundDatabase;
 
-	private int levelIndex = -1;
-	private int prevLevelIndex = -1;
+	private int levelIndex = 1;
+	private int prevLevelIndex = 1;
 	public bool IsAlternativeLevel;
+	public LevelExitState levelExitState = LevelExitState.None;
 	public int LevelIndex 
 	{
 		get {return levelIndex;}

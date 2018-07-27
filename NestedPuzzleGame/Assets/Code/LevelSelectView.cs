@@ -8,6 +8,12 @@ public class LevelSelectView : MonoBehaviour {
 
 	public int currentLevelIndex;
 	private bool isRotating;
+	public static int amountOfMasterPieces;
+
+	private void Awake() {
+		amountOfMasterPieces = GetAmountOfMasterPieces();
+	}
+
 	private void Start() {
 		currentLevelIndex = Director.Instance.LevelIndex;
 		if (currentLevelIndex>=0) {
@@ -36,11 +42,38 @@ public class LevelSelectView : MonoBehaviour {
 
 	private IEnumerator InitialFlow() {
 		yield return MoveToLevelCr(currentLevelIndex, 1);
-		yield return new WaitForSeconds(1);
-		MoveRight();
+		if (Director.Instance.IsAlternativeLevel) {
+			Rotate();
+		} else {
+			if ((Director.Instance.levelExitState & LevelExitState.LevelCompleted) != 0) {
+				yield return new WaitForSeconds(1);
+				MoveRight();
+			}
+		}
+		
+
+		Director.Instance.levelExitState = LevelExitState.None;
 	}
 
+	private int GetAmountOfMasterPieces() {
+		int amountOfPieces = 0;
+		for (int i = 1; i < listOfLevels.Count; i++) {
+			var levelSaveNormal = Director.SaveData.GetLevelSaveDataEntry(i.ToString() + "_" + false.ToString());
+			var levelSaveAlternative = Director.SaveData.GetLevelSaveDataEntry(i.ToString() + "_" + true.ToString());
+
+			if (levelSaveNormal != null && levelSaveNormal.gotCollectable) {
+				amountOfPieces++;
+			}
+			if (levelSaveAlternative != null && levelSaveAlternative.gotCollectable) {
+				amountOfPieces++;
+			}
+		}
+
+		return amountOfPieces;
+	}
+	
 	public void MoveLeft() {
+		if (currentLevelIndex == 1 && amountOfMasterPieces == 0) return;
 		currentLevelIndex -= 1;
 		currentLevelIndex = Mathf.Clamp(currentLevelIndex, 0, listOfLevels.Count - 1);
 		StartCoroutine(MoveToLevelCr(currentLevelIndex, 0.05f));

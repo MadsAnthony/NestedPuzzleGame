@@ -1,7 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class LevelPortrait : MonoBehaviour {
 	[SerializeField] private int levelIndex;
@@ -9,6 +8,8 @@ public class LevelPortrait : MonoBehaviour {
 	[SerializeField] private MeshRenderer backPicture;
 	[SerializeField] private GameObject picturePivot;
 	[SerializeField] private GameObject picturePanel;
+	[SerializeField] private GameObject masterPuzzlePivot;
+	[SerializeField] private TextMesh masterPuzzleAmountText;
 	[SerializeField] private MeshRenderer collectableNormal;
 	[SerializeField] private MeshRenderer collectableBack;
 
@@ -19,6 +20,16 @@ public class LevelPortrait : MonoBehaviour {
 		var aspectRatio = (float)level.picture.height/level.picture.width;
 		var pictureSize = new Vector3(scale, scale*aspectRatio, 1);
 
+		if (levelIndex == 0) {
+			masterPuzzlePivot.SetActive(true);
+			masterPuzzlePivot.transform.localPosition = new Vector3(0,0.3f+pictureSize.y/2f,0);
+			masterPuzzleAmountText.text = LevelSelectView.amountOfMasterPieces + "/"+"10";
+			picturePanel.SetActive(false);
+		} else {
+			masterPuzzlePivot.SetActive(false);
+			picturePanel.SetActive(true);
+		}
+		
 		picturePivot.transform.localScale = pictureSize;
 		picturePanel.transform.localPosition = new Vector3(0,1.2f+pictureSize.y/2f,0);
 		var levelSaveNormal = Director.SaveData.GetLevelSaveDataEntry(levelIndex.ToString() + "_" + false.ToString());
