@@ -339,7 +339,7 @@ MonoBehaviour:
   background: {fileID: 1458892114733086}
   backgroundQuad: {fileID: 1825874782736250}
   subPuzzleButton: {fileID: 114926917405569918}
-  collectable: {fileID: 1915739304439262, guid: 826a63784b6204e4cb0e26f80fa22381,
+  collectable: {fileID: 1132866355340932, guid: 826a63784b6204e4cb0e26f80fa22381,
     type: 2}
   parentSubPuzzle: {fileID: 0}
   subPuzzleLayer: 0
@@ -348,6 +348,10 @@ MonoBehaviour:
     id: 
     numberOfPivots: 0
     numberOfPieces: {x: 0, y: 0}
+    collectable:
+      isActive: 0
+      position: {x: 0, y: 0}
+      scale: {x: 1, y: 1}
   snapShot: {fileID: 0}
   snapShotCollectableLayer: {fileID: 0}
 --- !u!114 &114926917405569918

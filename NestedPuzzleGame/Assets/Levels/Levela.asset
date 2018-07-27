@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Name: Levela
   m_EditorClassIdentifier: 
   picture: {fileID: 2800000, guid: 6fe289ee0826afc47bff72f1d450c8e5, type: 3}
-  numberOfLayers: 0
-  numberOfPivots: 1
+  isMasterPuzzle: 0
   numberOfPieces: {x: 2, y: 3}
   subPuzzleNodes:
   - id: 0

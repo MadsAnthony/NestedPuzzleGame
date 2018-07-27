@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Name: Levele
   m_EditorClassIdentifier: 
   picture: {fileID: 2800000, guid: 21df3d74825234f528c36b4fe5124271, type: 3}
-  numberOfLayers: 0
-  numberOfPivots: 1
+  isMasterPuzzle: 0
   numberOfPieces: {x: 2, y: 3}
   subPuzzleNodes:
   - id: 0

@@ -187,6 +187,20 @@ public class SubPuzzle : MonoBehaviour {
 		}
 	}
 
+	public void SetupMasterPuzzle() {
+		foreach (var piece in activePuzzlePivot.pieces) {
+			piece.gameObject.SetActive(false);
+		}
+		
+		var amountOfMasterPieces = Director.GetAmountOfMasterPieces();
+		foreach (var piece in activePuzzlePivot.pieces) {
+			if (amountOfMasterPieces > 0) {
+				piece.gameObject.SetActive(true);
+			}
+			amountOfMasterPieces--;
+		}
+	}
+	
 	private IEnumerator SpawnExtraPivots(GameObject pivot, int numberOfPivots) {
 		var newPuzzlePivots = new List<PuzzlePivot>();
 		for (int i = 0; i < numberOfPivots; i++) {

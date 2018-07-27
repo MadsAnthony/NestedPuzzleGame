@@ -22,6 +22,7 @@ public class LevelInspector : Editor {
 
 		var editorModeCached = editorMode;
 		string[] editorModeOptions = {"Select", "Add"};
+		myTarget.isMasterPuzzle = EditorGUILayout.Toggle("IsMasterPuzzle:", myTarget.isMasterPuzzle);
 		editorMode = (EditorMode)EditorGUILayout.Popup ("Mode", (int)editorMode, editorModeOptions);
 		myTarget.picture = EditorGUILayout.ObjectField ("GoalTexture", myTarget.picture, typeof(Texture), false) as Texture;
 		if (GUILayout.Button ("Clear Nodes")) {

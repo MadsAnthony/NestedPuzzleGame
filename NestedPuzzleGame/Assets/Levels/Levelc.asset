@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Name: Levelc
   m_EditorClassIdentifier: 
   picture: {fileID: 2800000, guid: 1c009f34688507a4189f95f80049e79f, type: 3}
-  numberOfLayers: 0
-  numberOfPivots: 2
+  isMasterPuzzle: 0
   numberOfPieces: {x: 2, y: 2}
   subPuzzleNodes:
   - id: 0

@@ -77,4 +77,21 @@ public class Director : MonoBehaviour  {
 	public static void CameraShake() {
 		GameObject.Find ("BaseCamera").GetComponentInParent<CameraManager>().CameraShake();
 	}
+	
+	public static int GetAmountOfMasterPieces() {
+		int amountOfPieces = 0;
+		for (int i = 1; i < Director.LevelDatabase.levels.Count; i++) {
+			var levelSaveNormal = Director.SaveData.GetLevelSaveDataEntry(i.ToString() + "_" + false.ToString());
+			var levelSaveAlternative = Director.SaveData.GetLevelSaveDataEntry(i.ToString() + "_" + true.ToString());
+
+			if (levelSaveNormal != null && levelSaveNormal.gotCollectable) {
+				amountOfPieces++;
+			}
+			if (levelSaveAlternative != null && levelSaveAlternative.gotCollectable) {
+				amountOfPieces++;
+			}
+		}
+
+		return amountOfPieces;
+	}
 }
