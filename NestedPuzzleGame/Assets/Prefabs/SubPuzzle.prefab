@@ -341,6 +341,7 @@ MonoBehaviour:
   subPuzzleButton: {fileID: 114926917405569918}
   collectable: {fileID: 1132866355340932, guid: 826a63784b6204e4cb0e26f80fa22381,
     type: 2}
+  outlineMaterial: {fileID: 2100000, guid: 4caaac61a0a524a4eba944f394f09a13, type: 2}
   parentSubPuzzle: {fileID: 0}
   subPuzzleLayer: 0
   id: 
