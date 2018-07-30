@@ -105,11 +105,11 @@ public class GameBoard : MonoBehaviour {
 					var piece = hit.collider.GetComponent<Piece>();
 					if (piece != null) {
 						var snapablePoint = activeSubPuzzle.GetPointWithinRadius(piece.transform.localPosition, 0.2f);
-						if (snapablePoint != null)
-						{
+						if (snapablePoint != null) {
 							snapablePoint.piece = null;
 						}
-
+						
+						piece.outline.SetActive(true);
 						var offSet = piece.transform.position - mousePosInWorld;
 						offSet.z = 0;
 						draggablePieceOffset = offSet;
@@ -147,6 +147,7 @@ public class GameBoard : MonoBehaviour {
 			var snapablePoint = activeSubPuzzle.GetPointWithinRadius (draggablePiece.transform.localPosition, 0.2f);
 			if (snapablePoint != null) {
 				draggablePiece.transform.localPosition = new Vector3(snapablePoint.position.x, snapablePoint.position.y, draggablePiece.transform.localPosition.z);
+				draggablePiece.outline.SetActive(false);
 				snapablePoint.piece = draggablePiece;
 			}
 
