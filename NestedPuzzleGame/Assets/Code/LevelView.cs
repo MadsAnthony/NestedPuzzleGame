@@ -4,9 +4,9 @@ using UnityStandardAssets.ImageEffects;
 
 public class LevelView : MonoBehaviour {
 	[SerializeField] private Camera mainCamera;
-	[SerializeField] private Camera collectableCamera;
 	[SerializeField] private GameObject menuObject;
 	[SerializeField] private GameBoard gameboard;
+	[SerializeField] private CombineImageEffect combineImageEffect;
 
 	private void Start() {
 		DisableCollectableLayer();
@@ -32,7 +32,7 @@ public class LevelView : MonoBehaviour {
 			mainCamera.gameObject.GetComponent<Grayscale>().enabled = true;
 			mainCamera.gameObject.GetComponent<VignetteAndChromaticAberration>().enabled = true;
 			mainCamera.gameObject.GetComponent<BlurOptimized>().enabled = true;
-			collectableCamera.gameObject.SetActive(true);
+			combineImageEffect.EffectMaterial.SetFloat("_HideCameraTwo",1);
 		} else {
 			DisableCollectableLayer();
 		}
@@ -42,6 +42,6 @@ public class LevelView : MonoBehaviour {
 		mainCamera.gameObject.GetComponent<Grayscale>().enabled = false;
 		mainCamera.gameObject.GetComponent<VignetteAndChromaticAberration>().enabled = false;
 		mainCamera.gameObject.GetComponent<BlurOptimized>().enabled = false;
-		collectableCamera.gameObject.SetActive(false);
+		combineImageEffect.EffectMaterial.SetFloat("_HideCameraTwo",0);
 	}
 }

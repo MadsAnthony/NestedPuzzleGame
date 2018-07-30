@@ -125,7 +125,7 @@ public class SubPuzzle : MonoBehaviour {
 		
 		i = 0;
 		foreach (var snapablePoint in pivot.snapablePoints) {
-			shuffledPieces[i].transform.localPosition = snapablePoint.position;
+			shuffledPieces[i].transform.localPosition = new Vector3(snapablePoint.position.x,snapablePoint.position.y,shuffledPieces[i].transform.localPosition.z);
 			snapablePoint.piece = shuffledPieces[i];
 			i++;
 		}
@@ -264,7 +264,7 @@ public class SubPuzzle : MonoBehaviour {
 			backgroundQuad.GetComponent<MeshRenderer> ().enabled = false;
 
 
-			var camera = GameObject.Find("Main Camera");
+			var camera = GameObject.Find("CameraPivot/Main Camera");
 			var newPos = camera.transform.position-subPuzzles [0].gameObject.transform.position;
 			newPos.z = 0;
 			gameBoard.transform.position += newPos;

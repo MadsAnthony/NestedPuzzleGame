@@ -93,6 +93,14 @@ public class GameBoard : MonoBehaviour {
 			var hitsList = new List<RaycastHit>(hits);
 			hitsList = hitsList.OrderBy(x => x.transform.position.z).ToList();
 			foreach (var hit in hitsList) {
+				if (hit.collider.GetComponent<SubPuzzleButton>() != null)
+				{
+					var subPuzzleButton = hit.collider.GetComponent<SubPuzzleButton>();
+					subPuzzleButton.Click();
+				}
+			}
+
+			foreach (var hit in hitsList) {
 				if (!LevelView.IsCollectableLayerOn) {
 					var piece = hit.collider.GetComponent<Piece>();
 					if (piece != null) {
@@ -151,7 +159,7 @@ public class GameBoard : MonoBehaviour {
 					activeSubPuzzle.WasDone ();
 					if (activeSubPuzzle.parentSubPuzzle != null) {
 						transform.localScale *= 1/GameBoard.ZoomScale;
-						var camera = GameObject.Find("Main Camera");
+						var camera = GameObject.Find("CameraPivot/Main Camera");
 						var newPos = camera.transform.position-activeSubPuzzle.parentSubPuzzle.transform.position;
 						transform.localScale *= GameBoard.ZoomScale;
 
