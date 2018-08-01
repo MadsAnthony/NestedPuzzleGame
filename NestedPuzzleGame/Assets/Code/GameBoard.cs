@@ -110,6 +110,7 @@ public class GameBoard : MonoBehaviour {
 						}
 						
 						piece.outline.SetActive(true);
+						piece.Backdrop.SetActive (true);
 						var offSet = piece.transform.position - mousePosInWorld;
 						offSet.z = 0;
 						draggablePieceOffset = offSet;
@@ -150,10 +151,11 @@ public class GameBoard : MonoBehaviour {
 			var snapablePoint = activeSubPuzzle.GetPointWithinRadius (draggablePiece.transform.localPosition, 0.2f);
 			if (snapablePoint != null) {
 				draggablePiece.transform.localPosition = new Vector3(snapablePoint.position.x, snapablePoint.position.y, draggablePiece.transform.localPosition.z);
-				draggablePiece.outline.SetActive(false);
+				draggablePiece.Backdrop.SetActive (false);
 				snapablePoint.piece = draggablePiece;
 			}
 
+			draggablePiece.outline.SetActive(false);
 			draggablePiece = null;
 
 			var isDone = activeSubPuzzle.CheckForWin ();

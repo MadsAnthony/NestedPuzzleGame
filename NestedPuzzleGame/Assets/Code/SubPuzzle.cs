@@ -102,6 +102,7 @@ public class SubPuzzle : MonoBehaviour {
 				pivot.pieces.Add (pieceObject);
 				
 				pieceObject.outline = GenerateMeshOutline(pieceObject.gameObject);
+				pieceObject.outline.SetActive (false);
 
 				pieceZPosition += -0.1f;
 			}
@@ -109,6 +110,7 @@ public class SubPuzzle : MonoBehaviour {
 	}
 
 	public void SetPieceAsToHighestDepth(Piece piece) {
+		if (!activePuzzlePivot.pieces.Contains (piece)) return;
 		activePuzzlePivot.pieces.Remove (piece);
 		activePuzzlePivot.pieces.Add (piece);
 		SetDepthOfPieces ();
@@ -416,6 +418,7 @@ public class SubPuzzle : MonoBehaviour {
 
 		ScramblePiecePosition (puzzlePivot.pieces);
 		activePuzzlePivot = puzzlePivot;
+		SetDepthOfPieces ();
 	}
 
 	private PuzzlePivot GetNextPuzzlePivot() {
