@@ -406,7 +406,20 @@ public class SubPuzzle : MonoBehaviour {
 		puzzlePivot.collectableObject.transform.localScale = new Vector3(nodeAsset.collectable.scale.x,nodeAsset.collectable.scale.y,1);
 	}
 
+	private void SetBackgroundColor(int pivotIndex) {
+		if (pivotIndex == 0) {
+			backgroundQuad.GetComponent<MeshRenderer> ().material.SetVector ("_v1", new Vector4 (1, 0, 0, 0));
+			backgroundQuad.GetComponent<MeshRenderer> ().material.SetVector ("_v2", new Vector4 (0, 1, 0, 0));
+			backgroundQuad.GetComponent<MeshRenderer> ().material.SetVector ("_v3", new Vector4 (0, 0, 1, 0));
+		} else {
+			backgroundQuad.GetComponent<MeshRenderer> ().material.SetVector ("_v1", new Vector4 (0, 0, 1, 0));
+			backgroundQuad.GetComponent<MeshRenderer> ().material.SetVector ("_v2", new Vector4 (1, 0, 0, 0));
+			backgroundQuad.GetComponent<MeshRenderer> ().material.SetVector ("_v3", new Vector4 (0, 1, 0, 0));
+		}
+	}
 	private void SetupExtraPivot(PuzzlePivot puzzlePivot) {
+		SetBackgroundColor (puzzlePivots.Count);
+
 		HideAllPuzzlePivots ();
 		TakeSnapShot(puzzlePivot);
 		
@@ -489,6 +502,7 @@ public class SubPuzzle : MonoBehaviour {
 			activePuzzlePivot = nextPuzzlePivot;
 			HideAllPuzzlePivots ();
 			activePuzzlePivot.pivot.SetActive (true);
+			SetBackgroundColor (puzzlePivots.IndexOf(activePuzzlePivot));
 			return true;
 		}
 		return false;
