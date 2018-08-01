@@ -114,6 +114,9 @@ public class GameBoard : MonoBehaviour {
 						offSet.z = 0;
 						draggablePieceOffset = offSet;
 						draggablePiece = piece;
+
+						activeSubPuzzle.SetPieceAsToHighestDepth(draggablePiece);
+
 						break;
 					}
 				}

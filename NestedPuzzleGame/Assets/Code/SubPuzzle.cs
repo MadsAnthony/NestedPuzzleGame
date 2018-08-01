@@ -102,9 +102,23 @@ public class SubPuzzle : MonoBehaviour {
 				pivot.pieces.Add (pieceObject);
 				
 				pieceObject.outline = GenerateMeshOutline(pieceObject.gameObject);
-				
+
 				pieceZPosition += -0.1f;
 			}
+		}
+	}
+
+	public void SetPieceAsToHighestDepth(Piece piece) {
+		activePuzzlePivot.pieces.Remove (piece);
+		activePuzzlePivot.pieces.Add (piece);
+		SetDepthOfPieces ();
+	}
+
+	private void SetDepthOfPieces() {
+		float pieceZPosition = 0;
+		foreach (var piece in activePuzzlePivot.pieces)  {
+			piece.transform.localPosition = new Vector3(piece.transform.localPosition.x,piece.transform.localPosition.y,pieceZPosition);
+			pieceZPosition += -0.1f;
 		}
 	}
 
@@ -287,7 +301,7 @@ public class SubPuzzle : MonoBehaviour {
 	private GameObject GenerateMeshOutline(GameObject piece) {
 		var outlineGameObject = new GameObject();
 		outlineGameObject.transform.parent = piece.transform;
-		outlineGameObject.transform.localPosition = new Vector3(-0.5f,-0.5f,-0.01f);
+		outlineGameObject.transform.localPosition = new Vector3(-0.5f,-0.5f,-0.05f);
 		var meshFilter = outlineGameObject.AddComponent<MeshFilter>();
 		var meshRenderer = outlineGameObject.AddComponent<MeshRenderer>();
 		meshRenderer.material = outlineMaterial;
@@ -298,7 +312,7 @@ public class SubPuzzle : MonoBehaviour {
 		var triangles = new List<int>();
 		var normals = new List<Vector3>();
 		var uvs = new List<Vector2>();
-		var borderWidth = 0.02f;
+		var borderWidth = 0.05f;
 		var width = piece.transform.localScale.x;
 		var height = piece.transform.localScale.y;
 		CreateQuad(new Rect(0,			0,			width+borderWidth,			borderWidth), vertices, triangles, normals, uvs, mesh);
