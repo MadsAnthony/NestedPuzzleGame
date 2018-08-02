@@ -3,7 +3,6 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class LevelPortrait : MonoBehaviour {
-	[SerializeField] private int levelIndex;
 	[SerializeField] private MeshRenderer frontPicture;
 	[SerializeField] private MeshRenderer backPicture;
 	[SerializeField] private GameObject picturePivot;
@@ -12,6 +11,8 @@ public class LevelPortrait : MonoBehaviour {
 	[SerializeField] private TextMesh masterPuzzleAmountText;
 	[SerializeField] private MeshRenderer collectableNormal;
 	[SerializeField] private MeshRenderer collectableBack;
+
+	public int levelIndex;
 
 	void Start() {
 		var level = Director.LevelDatabase.levels [levelIndex];
@@ -32,8 +33,8 @@ public class LevelPortrait : MonoBehaviour {
 		
 		picturePivot.transform.localScale = pictureSize;
 		picturePanel.transform.localPosition = new Vector3(0,1.2f+pictureSize.y/2f,0);
-		var levelSaveNormal = Director.SaveData.GetLevelSaveDataEntry(levelIndex.ToString() + "_" + false.ToString());
-		var levelSaveAlternative = Director.SaveData.GetLevelSaveDataEntry(levelIndex.ToString() + "_" + true.ToString());
+		var levelSaveNormal = Director.SaveData.GetLevelSaveDataEntry(Director.Instance.WorldIndex.ToString() + "_" + levelIndex.ToString() + "_" + false.ToString());
+		var levelSaveAlternative = Director.SaveData.GetLevelSaveDataEntry(Director.Instance.WorldIndex.ToString() + "_" + levelIndex.ToString() + "_" + true.ToString());
 		collectableNormal.material.color = Color.black;
 		collectableBack.material.color = Color.black;
 		if (levelSaveNormal != null) {

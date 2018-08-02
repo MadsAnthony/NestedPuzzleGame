@@ -6,9 +6,10 @@ public class Director : MonoBehaviour  {
 	private static Director instance;
 	private static bool hasBeenDestroyed;
 
-	[SerializeField] private LevelDatabase levelDatabase;
+	[SerializeField] private LevelDatabaseDatabase worldDatabase;
 	[SerializeField] private SoundDatabase soundDatabase;
 
+	private int worldIndex = 0;
 	private int levelIndex = 1;
 	private int prevLevelIndex = 1;
 	public bool IsAlternativeLevel;
@@ -26,13 +27,19 @@ public class Director : MonoBehaviour  {
 		get { return prevLevelIndex;}
 	}
 
+	public int WorldIndex  {
+		get { return worldIndex; }
+		set { worldIndex = value; }
+	}
+
 	private GameEventManager		gameEventManager;
 	private UIManager 		 		uiManager;
 	private TransitionManager		transitionManager;
 	private SaveData				saveData;
 
 	public static GameEventManager 		GameEventManager 	{get {return Instance.gameEventManager;}}
-	public static LevelDatabase    		LevelDatabase 		{get {return Instance.levelDatabase;}}
+	public static LevelDatabase    		LevelDatabase 		{get {return WorldDatabase.levelDatabases[Instance.WorldIndex];}}
+	public static LevelDatabaseDatabase WorldDatabase 		{get {return Instance.worldDatabase;}}
 	public static UIManager    	   		UIManager			{get {return Instance.uiManager;}}
 	public static TransitionManager		TransitionManager 	{get {return Instance.transitionManager;}}
 	public static SoundDatabase			Sounds 				{get {return Instance.soundDatabase;}}
@@ -81,8 +88,8 @@ public class Director : MonoBehaviour  {
 	public static int GetAmountOfMasterPieces() {
 		int amountOfPieces = 0;
 		for (int i = 1; i < Director.LevelDatabase.levels.Count; i++) {
-			var levelSaveNormal = Director.SaveData.GetLevelSaveDataEntry(i.ToString() + "_" + false.ToString());
-			var levelSaveAlternative = Director.SaveData.GetLevelSaveDataEntry(i.ToString() + "_" + true.ToString());
+			var levelSaveNormal = Director.SaveData.GetLevelSaveDataEntry(Director.Instance.WorldIndex.ToString()+"_"+i.ToString() + "_" + false.ToString());
+			var levelSaveAlternative = Director.SaveData.GetLevelSaveDataEntry(Director.Instance.WorldIndex.ToString()+"_"+i.ToString() + "_" + true.ToString());
 
 			if (levelSaveNormal != null && levelSaveNormal.gotCollectable) {
 				amountOfPieces++;

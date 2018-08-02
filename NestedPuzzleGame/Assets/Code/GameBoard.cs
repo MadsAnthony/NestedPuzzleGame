@@ -134,7 +134,7 @@ public class GameBoard : MonoBehaviour {
 					
 					// Save
 					var tempDict = Director.SaveData.LevelProgress;
-					var id = Director.Instance.LevelIndex.ToString() + "_" + Director.Instance.IsAlternativeLevel.ToString();
+					var id = Director.Instance.WorldIndex.ToString() + "_" + Director.Instance.LevelIndex.ToString() + "_" + Director.Instance.IsAlternativeLevel.ToString();
 					var levelSave = Director.SaveData.GetLevelSaveDataEntry(id);
 					if (levelSave != null && !levelSave.gotCollectable) {
 						if (hasCollectedCollectable){
@@ -191,7 +191,7 @@ public class GameBoard : MonoBehaviour {
 				} else {
 					goalPictureObject.SetActive (true);
 					var tempDict = Director.SaveData.LevelProgress;
-					var id = Director.Instance.LevelIndex.ToString() + "_" + Director.Instance.IsAlternativeLevel.ToString();
+					var id = Director.Instance.WorldIndex.ToString() + "_" +Director.Instance.LevelIndex.ToString() + "_" + Director.Instance.IsAlternativeLevel.ToString();
 					var levelSave = Director.SaveData.GetLevelSaveDataEntry(id);
 					if (levelSave == null) {
 						Director.Instance.levelExitState |= LevelExitState.LevelCompleted;

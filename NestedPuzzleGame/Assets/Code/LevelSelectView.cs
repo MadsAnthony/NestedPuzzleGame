@@ -2,22 +2,40 @@
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LevelSelectView : MonoBehaviour {
-	[SerializeField] private List<GameObject> listOfLevels;
+	[SerializeField] private Text worldLabel;
+	[SerializeField] private GameObject levelPortraitPrefab;
 	[SerializeField] private AnimationCurve easeInOutCurve;
 
 	public int currentLevelIndex;
 	private bool isRotating;
+	private List<LevelPortrait> listOfPortraits = new List<LevelPortrait>();
 	public static int amountOfMasterPieces;
 	private Vector3 mousePosDownInWorld;
 	private Vector3 mousePosUpInWorld;
 
 	private void Awake() {
 		amountOfMasterPieces = Director.GetAmountOfMasterPieces();
+		worldLabel.text = "World "+(Director.Instance.WorldIndex + 1).ToString ();
 	}
 
 	private void Start() {
+		int i = 0;
+		foreach (var level in Director.LevelDatabase.levels) {
+			var levelPortraitObject = Instantiate (levelPortraitPrefab, transform);
+			if (i == 0) {
+				levelPortraitObject.transform.localPosition = new Vector3 (-20, 0, 0);
+			} else {
+				levelPortraitObject.transform.localPosition = new Vector3 (i*18, 0, 0);
+			}
+			var levelPortrait = levelPortraitObject.GetComponent<LevelPortrait> ();
+			levelPortrait.levelIndex = i;
+			listOfPortraits.Add (levelPortrait);
+			i++;
+		}
+
 		currentLevelIndex = Director.Instance.LevelIndex;
 		if (currentLevelIndex>=0) {
 			StartCoroutine(InitialFlow());
@@ -79,31 +97,31 @@ public class LevelSelectView : MonoBehaviour {
 	}
 
 	public void GoBack() {
-		Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("TitleScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
+		Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("WorldSelectScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
 	}
 
 	public void MoveLeft() {
 		if (currentLevelIndex == 1 && amountOfMasterPieces == 0) return;
 		currentLevelIndex -= 1;
-		currentLevelIndex = Mathf.Clamp(currentLevelIndex, 0, listOfLevels.Count - 1);
+		currentLevelIndex = Mathf.Clamp(currentLevelIndex, 0, listOfPortraits.Count - 1);
 		StartCoroutine(MoveToLevelCr(currentLevelIndex, 0.05f));
 	}
 
 	public void MoveRight() {
 		currentLevelIndex += 1;
-		currentLevelIndex = Mathf.Clamp(currentLevelIndex, 0, listOfLevels.Count - 1);
+		currentLevelIndex = Mathf.Clamp(currentLevelIndex, 0, listOfPortraits.Count - 1);
 		StartCoroutine(MoveToLevelCr(currentLevelIndex, 0.05f));
 	}
 
 	public void Rotate() {
 		if (currentLevelIndex < 0 || isRotating) return;
-		var currentPicture = listOfLevels [currentLevelIndex];
+		var currentPicture = listOfPortraits [currentLevelIndex];
 		var endRotation = currentPicture.transform.localEulerAngles+new Vector3 (0, 180, 0);
-		StartCoroutine(RotateTo(currentPicture, endRotation, 0.05f));
+		StartCoroutine(RotateTo(currentPicture.gameObject, endRotation, 0.05f));
 	}
 
 	private IEnumerator MoveToLevelCr(int levelIndex, float timeIncrement) {
-		var endPosition = gameObject.transform.position - listOfLevels[currentLevelIndex].transform.position;
+		var endPosition = gameObject.transform.position - listOfPortraits[currentLevelIndex].transform.position;
 		yield return AnimateTo(gameObject, endPosition, timeIncrement);
 	}
 

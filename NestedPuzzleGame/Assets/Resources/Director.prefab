@@ -132,5 +132,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9d14e64b19098b40adb6d48847b12ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levelDatabase: {fileID: 11400000, guid: 157088a87fc533846918a20540107d4c, type: 2}
+  worldDatabase: {fileID: 11400000, guid: 561a7ff0c9ea9c04cacdf5b785277ac7, type: 2}
   soundDatabase: {fileID: 11400000, guid: efa2db44058d756468153d5bf7888b1e, type: 2}
+  IsAlternativeLevel: 0
+  levelExitState: 0
