@@ -10,6 +10,7 @@ public class GameBoard : MonoBehaviour {
 	[SerializeField] public SubPuzzle subPuzzlePrefab;
 	[SerializeField] private AnimationCurve easeInOutCurve;
 	[SerializeField] private GameObject goalPicture;
+	[SerializeField] private GameObject cameraPivot;
 
 	public Piece draggablePiece;
 	public Vector3 draggablePieceOffset;
@@ -44,6 +45,7 @@ public class GameBoard : MonoBehaviour {
 	}
 
 	private IEnumerator SpawnInitialSubPuzzle() {
+		cameraPivot.transform.localPosition = new Vector3 (1000,1000,0);
 		var scale = 4;
 		var aspectRatio = (float)level.picture.height/level.picture.width;
 		var pictureSize = new Vector2(scale, scale*aspectRatio);
@@ -79,6 +81,8 @@ public class GameBoard : MonoBehaviour {
 		if (level.isMasterPuzzle) {
 			activeSubPuzzle.SetupMasterPuzzle();
 		}
+
+		cameraPivot.transform.localPosition = new Vector3 (0,0,0);
 	}
 
 	public void SetActiveSubPuzzle(SubPuzzle newActiveSubPuzzle) {

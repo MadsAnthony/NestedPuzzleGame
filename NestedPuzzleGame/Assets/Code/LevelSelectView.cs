@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 
 public class LevelSelectView : MonoBehaviour {
@@ -9,6 +10,8 @@ public class LevelSelectView : MonoBehaviour {
 	public int currentLevelIndex;
 	private bool isRotating;
 	public static int amountOfMasterPieces;
+	private Vector3 mousePosDownInWorld;
+	private Vector3 mousePosUpInWorld;
 
 	private void Awake() {
 		amountOfMasterPieces = Director.GetAmountOfMasterPieces();
@@ -23,18 +26,38 @@ public class LevelSelectView : MonoBehaviour {
 
 	private void Update() {
 		if (Input.GetMouseButtonDown (0)) {
-			var mousePosInWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-			mousePosInWorld.z = -1;
-			var hits = Physics.RaycastAll(mousePosInWorld, Vector3.forward, 100);
-			if (hits.Length > 0) {
-				var levelPortrait = hits [0].transform.GetComponentInParent<LevelPortrait> ();
-				if (levelPortrait != null) {
-					if (hits [0].transform.name.Contains ("Front")) {
-						levelPortrait.PlayLevel ();
-					}
-					if (hits [0].transform.name.Contains ("Back")) {
-						levelPortrait.PlayAlternativeLevel ();
-					}
+			mousePosDownInWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+			mousePosDownInWorld.z = -1;
+		}
+		if (Input.GetMouseButtonUp (0)) {
+			mousePosUpInWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+			mousePosDownInWorld.z = -1;
+
+			MouseUp ();
+		}
+	}
+
+	private void MouseUp() {
+		var dist = mousePosDownInWorld - mousePosUpInWorld;
+		var horiziontalDot = Vector3.Dot (Vector3.right, dist);
+		if (Mathf.Abs(horiziontalDot) > 1) {
+			if (horiziontalDot < 0) {
+				MoveLeft ();
+			} else {
+				MoveRight ();
+			}
+			return;
+		}
+
+		var hits = Physics.RaycastAll(mousePosDownInWorld, Vector3.forward, 100);
+		if (hits.Length > 0) {
+			var levelPortrait = hits [0].transform.GetComponentInParent<LevelPortrait> ();
+			if (levelPortrait != null) {
+				if (hits [0].transform.name.Contains ("Front")) {
+					levelPortrait.PlayLevel ();
+				}
+				if (hits [0].transform.name.Contains ("Back")) {
+					levelPortrait.PlayAlternativeLevel ();
 				}
 			}
 		}
@@ -54,7 +77,11 @@ public class LevelSelectView : MonoBehaviour {
 
 		Director.Instance.levelExitState = LevelExitState.None;
 	}
-	
+
+	public void GoBack() {
+		Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("TitleScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
+	}
+
 	public void MoveLeft() {
 		if (currentLevelIndex == 1 && amountOfMasterPieces == 0) return;
 		currentLevelIndex -= 1;

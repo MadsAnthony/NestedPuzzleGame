@@ -7,6 +7,6 @@ public class Boot : MonoBehaviour {
 	void Start () {
 		Application.targetFrameRate = 60;
 		var initDirector = Director.Instance;
-		SceneManager.LoadScene ("LevelSelectScene");
+		SceneManager.LoadScene ("TitleScene");
 	}
 }

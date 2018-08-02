@@ -53,12 +53,12 @@ public class LevelPortrait : MonoBehaviour {
 	public void PlayLevel() {
 		Director.Instance.LevelIndex = levelIndex;
 		Director.Instance.IsAlternativeLevel = false;
-		SceneManager.LoadScene ("LevelScene");
+		Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("LevelScene");}, 0.1f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
 	}
 
 	public void PlayAlternativeLevel() {
 		Director.Instance.LevelIndex = levelIndex;
 		Director.Instance.IsAlternativeLevel = true;
-		SceneManager.LoadScene ("LevelScene");
+		Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("LevelScene");}, 0.1f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
 	}
 }
