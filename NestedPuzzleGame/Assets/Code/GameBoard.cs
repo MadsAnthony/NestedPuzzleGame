@@ -13,6 +13,7 @@ public class GameBoard : MonoBehaviour {
 
 	public Piece draggablePiece;
 	public Vector3 draggablePieceOffset;
+	private SubPuzzle.SnapablePoint draggablePiecePrevSnapablePoint;
 
 	private RenderTexture puzzleTexture;
 
@@ -93,8 +94,7 @@ public class GameBoard : MonoBehaviour {
 			var hitsList = new List<RaycastHit>(hits);
 			hitsList = hitsList.OrderBy(x => x.transform.position.z).ToList();
 			foreach (var hit in hitsList) {
-				if (hit.collider.GetComponent<SubPuzzleButton>() != null)
-				{
+				if (hit.collider.GetComponent<SubPuzzleButton>() != null) {
 					var subPuzzleButton = hit.collider.GetComponent<SubPuzzleButton>();
 					subPuzzleButton.Click();
 				}
@@ -104,9 +104,12 @@ public class GameBoard : MonoBehaviour {
 				if (!LevelView.IsCollectableLayerOn) {
 					var piece = hit.collider.GetComponent<Piece>();
 					if (piece != null) {
-						var snapablePoint = activeSubPuzzle.GetPointWithinRadius(piece.transform.localPosition, 0.2f);
-						if (snapablePoint != null) {
+						var snapablePoint = activeSubPuzzle.GetPointWithinRadius(piece.transform.localPosition, 0.3f);
+						if (snapablePoint != null && snapablePoint.piece == piece) {
+							draggablePiecePrevSnapablePoint = snapablePoint;
 							snapablePoint.piece = null;
+						} else {
+							draggablePiecePrevSnapablePoint = null;
 						}
 						
 						piece.outline.SetActive(true);
@@ -115,7 +118,6 @@ public class GameBoard : MonoBehaviour {
 						offSet.z = 0;
 						draggablePieceOffset = offSet;
 						draggablePiece = piece;
-
 						activeSubPuzzle.SetPieceAsToHighestDepth(draggablePiece);
 
 						break;
@@ -148,53 +150,71 @@ public class GameBoard : MonoBehaviour {
 		}
 
 		if (Input.GetMouseButtonUp (0) && (draggablePiece != null)) {
-			var snapablePoint = activeSubPuzzle.GetPointWithinRadius (draggablePiece.transform.localPosition, 0.2f);
+			var snapablePoint = activeSubPuzzle.GetPointWithinRadius (draggablePiece.transform.localPosition, 0.3f);
 			if (snapablePoint != null) {
-				draggablePiece.transform.localPosition = new Vector3(snapablePoint.position.x, snapablePoint.position.y, draggablePiece.transform.localPosition.z);
-				draggablePiece.Backdrop.SetActive (false);
-				snapablePoint.piece = draggablePiece;
-			}
+				if (snapablePoint.piece != null) {
+					if (draggablePiecePrevSnapablePoint != null) {
+						var snapablePointPiece = snapablePoint.piece;
+						var prevSnapablePoint = draggablePiecePrevSnapablePoint;
+						snapablePoint.piece.Move (prevSnapablePoint.position, () => { AssignToSnapablePoint (snapablePointPiece, prevSnapablePoint); });
+						AssignToSnapablePoint (draggablePiece, snapablePoint);
+					} else {
+						draggablePiece.Jiggle ();
+					}
+				} else {
+					AssignToSnapablePoint (draggablePiece, snapablePoint);
+				}
 
+			}
 			draggablePiece.outline.SetActive(false);
 			draggablePiece = null;
+		}
+	}
 
-			var isDone = activeSubPuzzle.CheckForWin ();
-			if (isDone) {
-				var hasMorePuzzles = activeSubPuzzle.SetupNextPuzzlePivot ();
-				if (!hasMorePuzzles) {
-					activeSubPuzzle.WasDone ();
-					if (activeSubPuzzle.parentSubPuzzle != null) {
-						transform.localScale *= 1/GameBoard.ZoomScale;
-						var camera = GameObject.Find("CameraPivot/Main Camera");
-						var newPos = camera.transform.position-activeSubPuzzle.parentSubPuzzle.transform.position;
-						transform.localScale *= GameBoard.ZoomScale;
+	private void CheckForWin() {
+		var isDone = activeSubPuzzle.CheckForWin ();
+		if (isDone) {
+			var hasMorePuzzles = activeSubPuzzle.SetupNextPuzzlePivot ();
+			if (!hasMorePuzzles) {
+				activeSubPuzzle.WasDone ();
+				if (activeSubPuzzle.parentSubPuzzle != null) {
+					transform.localScale *= 1/GameBoard.ZoomScale;
+					var camera = GameObject.Find("CameraPivot/Main Camera");
+					var newPos = camera.transform.position-activeSubPuzzle.parentSubPuzzle.transform.position;
+					transform.localScale *= GameBoard.ZoomScale;
 
-						ZoomOut (transform.position+newPos);
+					ZoomOut (transform.position+newPos);
+				} else {
+					goalPictureObject.SetActive (true);
+					var tempDict = Director.SaveData.LevelProgress;
+					var id = Director.Instance.LevelIndex.ToString() + "_" + Director.Instance.IsAlternativeLevel.ToString();
+					var levelSave = Director.SaveData.GetLevelSaveDataEntry(id);
+					if (levelSave == null) {
+						Director.Instance.levelExitState |= LevelExitState.LevelCompleted;
+						tempDict[id] = new LevelSaveData(true, hasCollectedCollectable);
 					} else {
-						goalPictureObject.SetActive (true);
-						var tempDict = Director.SaveData.LevelProgress;
-						var id = Director.Instance.LevelIndex.ToString() + "_" + Director.Instance.IsAlternativeLevel.ToString();
-						var levelSave = Director.SaveData.GetLevelSaveDataEntry(id);
-						if (levelSave == null) {
-							Director.Instance.levelExitState |= LevelExitState.LevelCompleted;
-							tempDict[id] = new LevelSaveData(true, hasCollectedCollectable);
-						} else {
-							if (hasCollectedCollectable && !levelSave.gotCollectable){
-								Director.Instance.levelExitState |= LevelExitState.GotCollectable;
-								levelSave.gotCollectable = true;
-							}
-							tempDict[id] = levelSave;
+						if (hasCollectedCollectable && !levelSave.gotCollectable){
+							Director.Instance.levelExitState |= LevelExitState.GotCollectable;
+							levelSave.gotCollectable = true;
 						}
-
-						Director.SaveData.LevelProgress = tempDict;
-						Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("LevelSelectScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
+						tempDict[id] = levelSave;
 					}
-					activeSubPuzzle = activeSubPuzzle.parentSubPuzzle;
+
+					Director.SaveData.LevelProgress = tempDict;
+					Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("LevelSelectScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
 				}
+				activeSubPuzzle = activeSubPuzzle.parentSubPuzzle;
 			}
 		}
 	}
-		
+
+	private void AssignToSnapablePoint(Piece piece, SubPuzzle.SnapablePoint snapablePoint) {
+		snapablePoint.piece = piece;
+		snapablePoint.piece.transform.localPosition = new Vector3(snapablePoint.position.x, snapablePoint.position.y, 0);
+		snapablePoint.piece.Backdrop.SetActive (false);
+		CheckForWin ();
+	}
+
 	public void ZoomToLayer(int layerNumber) {
 		transform.localScale = startScale*Mathf.Pow(ZoomScale,layerNumber);
 	}

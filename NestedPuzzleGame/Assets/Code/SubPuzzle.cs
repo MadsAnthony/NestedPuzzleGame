@@ -111,6 +111,7 @@ public class SubPuzzle : MonoBehaviour {
 
 	public void SetPieceAsToHighestDepth(Piece piece) {
 		if (!activePuzzlePivot.pieces.Contains (piece)) return;
+		activePuzzlePivot.pieces = activePuzzlePivot.pieces.OrderBy (x => x.transform.localPosition.z).Reverse().ToList();
 		activePuzzlePivot.pieces.Remove (piece);
 		activePuzzlePivot.pieces.Add (piece);
 		SetDepthOfPieces ();

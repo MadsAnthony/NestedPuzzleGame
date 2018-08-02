@@ -422,10 +422,10 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 0
   goalPicture: {fileID: 0}
-  goalTexture: {fileID: 2800000, guid: 6d313820a7a9f8042a924f35b7007706, type: 3}
   draggablePiece: {fileID: 0}
   draggablePieceOffset: {x: 0, y: 0, z: 0}
   activeSubPuzzle: {fileID: 0}
+  hasCollectedCollectable: 0
 --- !u!114 &114965788653702652
 MonoBehaviour:
   m_ObjectHideFlags: 1
