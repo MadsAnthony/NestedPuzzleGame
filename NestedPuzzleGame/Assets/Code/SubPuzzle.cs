@@ -68,13 +68,13 @@ public class SubPuzzle : MonoBehaviour {
 	}
 
 	public void SpawnSubPuzzle() {
-		StartCoroutine (SpawnExtraPivots(background, nodeAsset.numberOfPivots));
+		StartCoroutine (SpawnExtraPivots(background, nodeAsset.puzzlePivots.Count));
 	}
 
 	
 	private void SpawnPieces(PuzzlePivot pivot, Texture texture) {
-		int piecesOnX = (int)nodeAsset.numberOfPieces.x+additionalPieces;
-		int piecesOnY = (int)nodeAsset.numberOfPieces.y+additionalPieces;
+		int piecesOnX = (int)pivot.numberOfPieces.x;
+		int piecesOnY = (int)pivot.numberOfPieces.y;
 
 		var scale = new Vector2(1f/piecesOnX, 1f/piecesOnY);
 
@@ -126,8 +126,8 @@ public class SubPuzzle : MonoBehaviour {
 	}
 
 	private void SetupCollectableLayerForPieces(PuzzlePivot pivot){
-		int piecesOnX = (int)nodeAsset.numberOfPieces.x+additionalPieces;
-		int piecesOnY = (int)nodeAsset.numberOfPieces.y+additionalPieces;
+		int piecesOnX = (int)pivot.numberOfPieces.x;
+		int piecesOnY = (int)pivot.numberOfPieces.y;
 
 		var scale = new Vector2(1f/piecesOnX, 1f/piecesOnY);
 		
@@ -196,7 +196,7 @@ public class SubPuzzle : MonoBehaviour {
 		var offset = new Vector3 (-1.5f,-4,0);
 		int i = 0;
 		
-		int piecesOnX = (int)GameBoard.numberOfPieces.x;
+		int piecesOnX = (int)activePuzzlePivot.numberOfPieces.x;
 		
 		foreach (var piece in pieces) {
 			var x = i%piecesOnX;
@@ -225,6 +225,7 @@ public class SubPuzzle : MonoBehaviour {
 		var newPuzzlePivots = new List<PuzzlePivot>();
 		for (int i = 0; i < numberOfPivots; i++) {
 			var newPuzzlePivot = SpawnExtraPivot(pivot);
+			newPuzzlePivot.numberOfPieces = nodeAsset.puzzlePivots[i].numberOfPieces+new Vector2(1,1)*additionalPieces;
 			newPuzzlePivots.Add(newPuzzlePivot);
 
 			if (nodeAsset.collectable.isActive && i == numberOfPivots-1) {
@@ -522,7 +523,7 @@ public class SubPuzzle : MonoBehaviour {
 		foreach (var piece in pieces) {
 			var snapablePoint = GetSnapablePointWithPieceId(pivot, piece.id);
 
-			var relativePos = GetRelativePosition(keyPieceId, pivot.snapablePoints.IndexOf(snapablePoint));
+			var relativePos = GetRelativePosition(keyPieceId, pivot.snapablePoints.IndexOf(snapablePoint), pivot);
 			keyPieceDictionary.pieceDictionary.Add(relativePos,piece.id);
 		}
 
@@ -531,7 +532,7 @@ public class SubPuzzle : MonoBehaviour {
 
 	private SnapablePoint GetSnapablePointFromRelativePosition(SnapablePoint currentSnapablePoint, Vector2 relativePosition) {
 		var index = activePuzzlePivot.snapablePoints.IndexOf(currentSnapablePoint);
-		int piecesOnY = (int)nodeAsset.numberOfPieces.y+additionalPieces;
+		int piecesOnY = (int)activePuzzlePivot.numberOfPieces.y;
 
 		var newX = index + relativePosition.x*piecesOnY;
 		var newY = index + relativePosition.y;
@@ -548,8 +549,8 @@ public class SubPuzzle : MonoBehaviour {
 		return activePuzzlePivot.snapablePoints[newIndex];
 	}
 	
-	private Vector2 GetRelativePosition(int currentIndex, int otherIndex) {
-		int piecesOnY = (int)nodeAsset.numberOfPieces.y+additionalPieces;
+	private Vector2 GetRelativePosition(int currentIndex, int otherIndex, PuzzlePivot pivot) {
+		int piecesOnY = (int)pivot.numberOfPieces.y;
 
 		var currentX = Mathf.FloorToInt((float)currentIndex/piecesOnY);
 		var currentY = currentIndex % piecesOnY;
@@ -572,7 +573,7 @@ public class SubPuzzle : MonoBehaviour {
 	
 	public SnapablePoint GetSnapablePointFromDirection(SnapablePoint currentSnapablePoint, Direction direction) {
 		var index = activePuzzlePivot.snapablePoints.IndexOf(currentSnapablePoint);
-		int piecesOnY = (int)nodeAsset.numberOfPieces.y+additionalPieces;
+		int piecesOnY = (int)activePuzzlePivot.numberOfPieces.y;
 		
 		if (direction == Direction.Right) {
 			var newIndex = index + piecesOnY;
@@ -615,6 +616,7 @@ public class SubPuzzle : MonoBehaviour {
 		public List<Piece> pieces = new List<Piece>();
 		public List<SnapablePoint> snapablePoints = new List<SnapablePoint>();
 		public GameObject collectableObject;
+		public Vector2 numberOfPieces;
 
 		public PuzzlePivot(GameObject parent) {
 			pivot = new GameObject();

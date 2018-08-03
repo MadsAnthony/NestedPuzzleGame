@@ -15,6 +15,7 @@ public class LevelInspector : Editor {
 	private Vector2 mousePos;
 	private EditorMode editorMode;
 	private string selectableNodeId;
+	private int selectablePuzzlePivotId;
 
 	public override void OnInspectorGUI() {
 		bool reconstruct = false;
@@ -53,8 +54,8 @@ public class LevelInspector : Editor {
 			EditorGUILayout.LabelField (selectionId);
 			EditorGUILayout.EndHorizontal ();
 
-			selectedNodeAsset.numberOfPivots = EditorGUILayout.IntField ("Number of Pivots:", selectedNodeAsset.numberOfPivots);
-			selectedNodeAsset.numberOfPieces = EditorGUILayout.Vector2Field ("Number of Pieces:", selectedNodeAsset.numberOfPieces);
+			var puzzlePivotAsset = selectedNodeAsset.puzzlePivots [selectablePuzzlePivotId];
+			puzzlePivotAsset.numberOfPieces = EditorGUILayout.Vector2Field ("Number of Pieces:", puzzlePivotAsset.numberOfPieces);
 			selectedNodeAsset.collectable.isActive = EditorGUILayout.Toggle("Has Collectable:", selectedNodeAsset.collectable.isActive);
 			if (selectedNodeAsset.collectable.isActive) {
 				selectedNodeAsset.collectable.position = EditorGUILayout.Vector2Field ("Position of collectable:", selectedNodeAsset.collectable.position);
@@ -62,6 +63,10 @@ public class LevelInspector : Editor {
 			}
 
 			EditorGUILayout.EndVertical ();
+			if(GUILayout.Button("Add PuzzlePivot")) {
+				selectedNodeAsset.puzzlePivots.Add(new LevelAsset.PuzzlePivot());
+				reconstruct = true;
+			}
 			if(GUILayout.Button("Add Node")) {
 				myTarget.subPuzzleNodes.Add(new LevelAsset.SubPuzzleNode(selectedNodeAsset.id+"-"+LevelAssetHelper.GetChildrenNodes(nodeAssetDictionary,selectedNodeAsset.id).Count));
 				reconstruct = true;
@@ -74,44 +79,20 @@ public class LevelInspector : Editor {
 		if (Event.current.type == EventType.MouseDown && IsPositionWithinWindow(Event.current.mousePosition)) {
 			if (editorMode == EditorMode.Select) {
 				var mousePosInWindow = new Vector3(tmpMousePos.x/50,-tmpMousePos.y/50,0);
-				var a = Physics.RaycastAll (cameraGameObject.transform.position+mousePosInWindow, Vector3.forward, 200);
+				var hits = Physics.RaycastAll (cameraGameObject.transform.position+mousePosInWindow, Vector3.forward, 200);
 				selectableNodeId = String.Empty;
-				if (a.Length > 0) {
-					selectableNodeId = a[0].collider.gameObject.GetComponent<LevelEditorNode>().id;
+				if (hits.Length > 0) {
+					if (hits [0].collider.gameObject.GetComponent<LevelEditorNode> () != null) {
+						selectableNodeId = hits[0].collider.gameObject.GetComponent<LevelEditorNode>().nodeId;
+					}
+					if (hits [0].collider.gameObject.GetComponent<LevelEditorPuzzlePivot> () != null) {
+						var levelEditorPuzzlePivot = hits [0].collider.gameObject.GetComponent<LevelEditorPuzzlePivot> ();
+						selectableNodeId = levelEditorPuzzlePivot.parent.nodeId;
+						selectablePuzzlePivotId = levelEditorPuzzlePivot.parent.puzzlePivots.IndexOf(levelEditorPuzzlePivot);
+					}
 				}
 				reconstruct = true;
-			} /*else if (editorMode == EditorMode.Add) {
-				if (pieceType == PieceType.Tile) {
-					if (Event.current.button == 0) {
-						if (!myTarget.Tiles.Exists(x => { return x.Pos == mousePosInGrid; })) {
-							myTarget.Tiles.Add(new TileData(mousePosInGrid));
-							reconstruct = true;
-						}
-					}
-
-					if (Event.current.button == 1) {
-						var posibleTile = myTarget.Tiles.Find(x => { return x.Pos == mousePosInGrid; });
-						if (posibleTile != null) {
-							myTarget.Tiles.Remove(posibleTile);
-							reconstruct = true;
-						}
-					}
-				} else {
-					var posibleTile = myTarget.Tiles.Find(x => { return x.Pos == mousePosInGrid; });
-					if (Event.current.button == 0) {
-						if (posibleTile != null && posibleTile.Pieces.Count == 0) {
-							posibleTile.Pieces.Add(new PieceData(pieceType));
-							reconstruct = true;
-						}
-					}
-					if (Event.current.button == 1) {
-						if (posibleTile != null && posibleTile.Pieces.Count != 0){
-							posibleTile.Pieces = new List<PieceData>();
-							reconstruct = true;
-						}
-					}
-				}
-			}*/
+			}
 
 		}
 
@@ -173,6 +154,7 @@ public class LevelInspector : Editor {
 		camera.targetTexture = editorRenderTexture;
 
 		levelEditorNode = Resources.Load ("LevelEditorNode") as GameObject;
+		levelEditorPuzzlePivot = Resources.Load ("levelEditorPuzzlePivot") as GameObject;
 
 		nodeAssetDictionary = LevelAssetHelper.ConstructDictionary (myTarget.subPuzzleNodes);
 		nodeDictionary = new Dictionary<string,LevelEditorNode>();
@@ -183,7 +165,8 @@ public class LevelInspector : Editor {
 		if (!string.IsNullOrEmpty (selectableNodeId)) {
 			nodeDictionary.TryGetValue (selectableNodeId, out selectedNode);
 			if (selectedNode != null) {
-				var renderer = selectedNode.GetComponent<MeshRenderer> ();
+				var pivot = selectedNode.puzzlePivots [selectablePuzzlePivotId];
+				var renderer = pivot.GetComponent<MeshRenderer> ();
 				var tempMaterial = new Material (renderer.sharedMaterial);
 				tempMaterial.color = Color.green;
 				renderer.sharedMaterial = tempMaterial;
@@ -192,6 +175,7 @@ public class LevelInspector : Editor {
 	}
 
 	private GameObject levelEditorNode;
+	private GameObject levelEditorPuzzlePivot;
 	private Dictionary<string,List<LevelAsset.SubPuzzleNode>> nodeAssetDictionary;
 	private Dictionary<string,LevelEditorNode> nodeDictionary;
 
@@ -199,8 +183,19 @@ public class LevelInspector : Editor {
 		var nodeGameObject = GameObject.Instantiate (levelEditorNode);
 		nodeGameObject.transform.parent = rootContainer.transform;
 		nodeGameObject.transform.localPosition = new Vector2(pos.x,pos.y);
-		nodeGameObject.GetComponent<LevelEditorNode> ().id = subPuzzleNode.id;
+		nodeGameObject.GetComponent<LevelEditorNode> ().nodeId = subPuzzleNode.id;
 		nodeDictionary.Add (subPuzzleNode.id,nodeGameObject.GetComponent<LevelEditorNode> ());
+
+		int i = 0;
+		foreach (var puzzlePivotAsset in subPuzzleNode.puzzlePivots) {
+			var puzzlePivotObject = GameObject.Instantiate (levelEditorPuzzlePivot);
+			var puzzlePivot = puzzlePivotObject.GetComponent<LevelEditorPuzzlePivot> ();
+			puzzlePivot.transform.parent = rootContainer.transform;
+			puzzlePivot.transform.localPosition = new Vector3(pos.x+0.3f*i,pos.y-0.3f*i,i);
+			puzzlePivot.parent = nodeGameObject.GetComponent<LevelEditorNode> ();
+			nodeGameObject.GetComponent<LevelEditorNode> ().puzzlePivots.Add (puzzlePivot);
+			i++;
+		}
 
 		if (nodeAssetDictionary.ContainsKey(subPuzzleNode.id)) {
 			float x = pos.x-0.75f;

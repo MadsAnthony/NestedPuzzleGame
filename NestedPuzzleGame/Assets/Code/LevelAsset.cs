@@ -14,14 +14,19 @@ public class LevelAsset : ScriptableObject {
 	[Serializable]
 	public class SubPuzzleNode {
 		public string id;
-		public int numberOfPivots = 1;
-		public Vector2 numberOfPieces = new Vector2(1,1);
-		
+		public List<PuzzlePivot> puzzlePivots = new List<PuzzlePivot>();
 		public Collectable collectable = new Collectable();
 		
 		public SubPuzzleNode(string id) {
 			this.id = id;
+			puzzlePivots.Add(new PuzzlePivot());
 		}
+	}
+
+	[Serializable]
+	public class PuzzlePivot {
+		public Vector2 numberOfPieces = new Vector2(1,1);
+		public Collectable collectable = new Collectable();
 	}
 
 	[Serializable]

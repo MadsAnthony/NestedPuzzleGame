@@ -16,8 +16,17 @@ MonoBehaviour:
   numberOfPieces: {x: 2, y: 2}
   subPuzzleNodes:
   - id: 0
-    numberOfPivots: 2
-    numberOfPieces: {x: 2, y: 2}
+    puzzlePivots:
+    - numberOfPieces: {x: 2, y: 2}
+      collectable:
+        isActive: 0
+        position: {x: 0, y: 0}
+        scale: {x: 1, y: 1}
+    - numberOfPieces: {x: 2, y: 2}
+      collectable:
+        isActive: 0
+        position: {x: 0, y: 0}
+        scale: {x: 1, y: 1}
     collectable:
       isActive: 1
       position: {x: 0, y: 0}

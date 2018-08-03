@@ -1,10 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 using MiniJSON;
-
 
 public class TitleView : MonoBehaviour {
 	[SerializeField] private Text versionLeft;
@@ -18,7 +18,7 @@ public class TitleView : MonoBehaviour {
 		if (manifest != null)
 		{
 			var manifestDict = Json.Deserialize(manifest.text) as Dictionary<string,object>;
-			versionRight.text = manifestDict ["buildNumber"].ToString ();
+			versionRight.text = String.Format("0.1({0})",manifestDict ["buildNumber"].ToString ());
 		}
 	}
 }

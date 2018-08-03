@@ -6,8 +6,8 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: LevelEditorNode
-  m_Shader: {fileID: 10755, guid: 0000000000000000f000000000000000, type: 0}
+  m_Name: LevelEditorPuzzlePivot
+  m_Shader: {fileID: 4800000, guid: b8996bd6b2cac437a974fcc701b75474, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -39,7 +39,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 0e5752dfb788f48e0b4b569a0d22a47b, type: 3}
+        m_Texture: {fileID: 2800000, guid: 3385c5650ab75354698a439c055e1a56, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -72,5 +72,5 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0.8161765, g: 0.48970586, b: 0, a: 0.441}
+    - _Color: {r: 0.8014706, g: 0.4832396, b: 0.0058931718, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

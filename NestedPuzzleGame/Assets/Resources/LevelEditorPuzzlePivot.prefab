@@ -20,10 +20,11 @@ GameObject:
   m_Component:
   - component: {fileID: 4682028994384106}
   - component: {fileID: 33460361816326276}
+  - component: {fileID: 64233078107447568}
   - component: {fileID: 23927596612513942}
-  - component: {fileID: 114880264427143726}
+  - component: {fileID: 114259079019672716}
   m_Layer: 0
-  m_Name: LevelEditorNode
+  m_Name: LevelEditorPuzzlePivot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -55,7 +56,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 5f09a97ae301d314b86de032ac537ec9, type: 2}
+  - {fileID: 2100000, guid: 53f63ab7aa17ee444b80ee5e3e3c0457, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -81,7 +82,21 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1112179765432346}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &114880264427143726
+--- !u!64 &64233078107447568
+MeshCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1112179765432346}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Convex: 0
+  m_InflateMesh: 0
+  m_SkinWidth: 0.01
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &114259079019672716
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -89,8 +104,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1112179765432346}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ee05c83c791c7994caf95f86e1e7d705, type: 3}
+  m_Script: {fileID: 11500000, guid: 22dc09f76a06972408103f41c18f1526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nodeId: 
-  puzzlePivots: []
+  parent: {fileID: 0}
