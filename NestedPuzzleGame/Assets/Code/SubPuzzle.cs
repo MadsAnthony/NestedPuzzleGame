@@ -11,36 +11,29 @@ public class SubPuzzle : MonoBehaviour {
 	[SerializeField] private GameObject background;
 	[SerializeField] private GameObject backgroundQuad;
 	[SerializeField] private SubPuzzleButton subPuzzleButton;
-	[SerializeField] private GameObject collectable;
 	[SerializeField] private Material outlineMaterial;
 
-	private RenderTexture puzzleCameraTexture;
-	private RenderTexture puzzleCameraCollectableTexture;
-	
-	private GameBoard gameBoard;
-
-	private RenderTexture puzzleTexture;
-
-	private List<PuzzlePivot> puzzlePivots = new List<PuzzlePivot>();
-	private PuzzlePivot activePuzzlePivot;
-	
-	private List<SubPuzzle> subPuzzles = new List<SubPuzzle>();
 	public SubPuzzle parentSubPuzzle;
-
+	public Action completedSubPuzzle;
+	public Texture snapShot;
 	public int subPuzzleLayer = 0;
 	public string id;
 	public LevelAsset.SubPuzzleNode nodeAsset;
+
+	private RenderTexture puzzleCameraTexture;
+	private GameBoard gameBoard;
+	private RenderTexture puzzleTexture;
+	private List<PuzzlePivot> puzzlePivots = new List<PuzzlePivot>();
+	private PuzzlePivot activePuzzlePivot;
+	private List<SubPuzzle> subPuzzles = new List<SubPuzzle>();
+
 	private Vector2 textureSize;
 	private TextureFormat textureFormat = TextureFormat.ARGB32;
 	private RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
 	private Vector2 sizeOfPicture;
-	private int additionalPieces;
-	
+	private CollectableHelper collectableHelper;
+
 	public void Initialize(GameBoard gameBoard, string id, int layer, Vector2 sizeOfPicture) {
-		if (Director.Instance.IsAlternativeLevel) {
-			additionalPieces = 1;
-		}
-		
 		this.gameBoard = gameBoard;
 		subPuzzleButton.gameBoard = gameBoard;
 		subPuzzleButton.subPuzzle = this;
@@ -49,14 +42,14 @@ public class SubPuzzle : MonoBehaviour {
 		this.id = id;
 		nodeAsset = LevelAssetHelper.GetNodeAsset (gameBoard.nodeAssetDictionary, id);
 
+
+
 		textureSize = new Vector2 (sizeOfPicture.x,sizeOfPicture.y)*120;
 		backgroundQuad.transform.localScale = new Vector3(sizeOfPicture.x,sizeOfPicture.y,1);
 		puzzleCameraTexture = new RenderTexture ((int)textureSize.x, (int)textureSize.y, 24, renderTextureFormat);
 		puzzleCamera.targetTexture = puzzleCameraTexture;
 		puzzleCamera.orthographicSize = sizeOfPicture.y/2;
-		puzzleCameraCollectableTexture = new RenderTexture ((int)textureSize.x, (int)textureSize.y, 24, renderTextureFormat);
-		puzzleCameraCollectable.targetTexture = puzzleCameraCollectableTexture;
-		puzzleCameraCollectable.orthographicSize = sizeOfPicture.y/2;
+		collectableHelper = new CollectableHelper (puzzleCameraCollectable,sizeOfPicture, textureSize, renderTextureFormat, textureFormat);
 	}
 
 	public void ActivateSubPuzzle() {
@@ -100,8 +93,8 @@ public class SubPuzzle : MonoBehaviour {
 
 				pieceObject.CollectableLayerRenderer.gameObject.SetActive(false);
 				pivot.pieces.Add (pieceObject);
-				
-				pieceObject.outline = GenerateMeshOutline(pieceObject.gameObject);
+
+				pieceObject.outline = PieceOutlineHelper.GenerateMeshOutline(pieceObject.gameObject);
 				pieceObject.outline.SetActive (false);
 
 				pieceZPosition += -0.1f;
@@ -125,59 +118,7 @@ public class SubPuzzle : MonoBehaviour {
 		}
 	}
 
-	private void SetupCollectableLayerForPieces(PuzzlePivot pivot){
-		int piecesOnX = (int)pivot.numberOfPieces.x;
-		int piecesOnY = (int)pivot.numberOfPieces.y;
 
-		var scale = new Vector2(1f/piecesOnX, 1f/piecesOnY);
-		
-		var shuffledPieces = pivot.pieces.OrderBy( x => UnityEngine.Random.Range(0, pivot.pieces.Count) ).ToList( );
-		int i = 0;
-		foreach (var piece in shuffledPieces) {
-			var x = Mathf.FloorToInt((float)i/piecesOnY);
-			var y = i%piecesOnY;
-			piece.CollectableLayerRenderer.gameObject.SetActive(true);
-			piece.CollectableLayerRenderer.material.SetTextureScale ("_MainTex",scale);
-			piece.CollectableLayerRenderer.material.SetTextureOffset("_MainTex", new Vector2(x*scale.x,y*scale.y));
-			piece.CollectableLayerRenderer.material.SetTexture ("_MainTex", snapShotCollectableLayer);
-			i++;
-		}
-		
-		i = 0;
-		foreach (var snapablePoint in pivot.snapablePoints) {
-			shuffledPieces[i].transform.localPosition = new Vector3(snapablePoint.position.x,snapablePoint.position.y,shuffledPieces[i].transform.localPosition.z);
-			snapablePoint.piece = shuffledPieces[i];
-			i++;
-		}
-		
-		var importantPieces = GetImportantPieces(pivot);
-		collectableKeyPieceDictionary = SetupKeyPieceDictionary(pivot, importantPieces);
-		
-		foreach (var snapablePoint in pivot.snapablePoints) {
-			snapablePoint.piece = null;
-		}
-	}
-
-	private List<Piece> GetImportantPieces(PuzzlePivot pivot) {
-		var result = new List<Piece>();
-		var collectablePosition = new Vector2(pivot.collectableObject.transform.position.x-pivot.collectableObject.transform.localScale.x/2f,
-											  pivot.collectableObject.transform.position.y-pivot.collectableObject.transform.localScale.y/2f);
-		var collectableScale = new Vector2(pivot.collectableObject.transform.localScale.x, pivot.collectableObject.transform.localScale.y);
-		var collectableRect = new Rect(collectablePosition, collectableScale);
-		
-		foreach (var snapablePoint in pivot.snapablePoints) {
-			var piecePosition = new Vector2(snapablePoint.piece.transform.position.x-snapablePoint.piece.transform.localScale.x/2f,
-											snapablePoint.piece.transform.position.y-snapablePoint.piece.transform.localScale.y/2f);
-			var pieceScale = new Vector2(snapablePoint.piece.transform.localScale.x, snapablePoint.piece.transform.localScale.y);
-			var pieceRect = new Rect(piecePosition, pieceScale);
-
-			if (pieceRect.Overlaps(collectableRect)) {
-				result.Add(snapablePoint.piece);
-			}
-		}
-		return result;
-	}
-	
 	private void ScramblePiecePosition(List<Piece> pieces) {
 		foreach (var piece in pieces) {
 			var x = sizeOfPicture.x * 0.5f;
@@ -225,11 +166,15 @@ public class SubPuzzle : MonoBehaviour {
 		var newPuzzlePivots = new List<PuzzlePivot>();
 		for (int i = 0; i < numberOfPivots; i++) {
 			var newPuzzlePivot = SpawnExtraPivot(pivot);
+			var additionalPieces = 0;
+			if (Director.Instance.IsAlternativeLevel) {
+				additionalPieces = 1;
+			}
 			newPuzzlePivot.numberOfPieces = nodeAsset.puzzlePivots[i].numberOfPieces+new Vector2(1,1)*additionalPieces;
 			newPuzzlePivots.Add(newPuzzlePivot);
 
 			if (nodeAsset.collectable.isActive && i == numberOfPivots-1) {
-				SpawnCollectable(newPuzzlePivot);
+				collectableHelper.SpawnCollectable(newPuzzlePivot,nodeAsset.collectable.position,nodeAsset.collectable.scale);
 			}
 		}
 		
@@ -301,72 +246,14 @@ public class SubPuzzle : MonoBehaviour {
 		}
 		return true;
 	}
-	
-	private GameObject GenerateMeshOutline(GameObject piece) {
-		var outlineGameObject = new GameObject();
-		outlineGameObject.transform.parent = piece.transform;
-		outlineGameObject.transform.localPosition = new Vector3(-0.5f,-0.5f,-0.05f);
-		var meshFilter = outlineGameObject.AddComponent<MeshFilter>();
-		var meshRenderer = outlineGameObject.AddComponent<MeshRenderer>();
-		meshRenderer.material = outlineMaterial;
-		var mesh = new Mesh();
-		meshFilter.mesh = mesh;
-		
-		var vertices = new List<Vector3>();
-		var triangles = new List<int>();
-		var normals = new List<Vector3>();
-		var uvs = new List<Vector2>();
-		var borderWidth = 0.05f;
-		var width = piece.transform.localScale.x;
-		var height = piece.transform.localScale.y;
-		CreateQuad(new Rect(0,			0,			width+borderWidth,			borderWidth), vertices, triangles, normals, uvs, mesh);
-		CreateQuad(new Rect(width,		0,			borderWidth,				height+borderWidth), vertices, triangles, normals, uvs, mesh);
-		CreateQuad(new Rect(0,			height,		width+borderWidth,			borderWidth), 	vertices, triangles, normals, uvs, mesh);
-		CreateQuad(new Rect(0,			0,			borderWidth,				height+borderWidth), vertices, triangles, normals, uvs, mesh);
-		mesh.vertices = vertices.ToArray();
-		mesh.triangles = triangles.ToArray();
-		mesh.normals = normals.ToArray();
-		mesh.uv = uvs.ToArray();
-		return outlineGameObject;
-	}
-	
-	private void CreateQuad(Rect rect,List<Vector3> vertices, List<int> triangles, List<Vector3> normals, List<Vector2> uvs, Mesh mesh) {
-		float width = 1;
-		float height = 1;
-		vertices.Add(new Vector3(rect.x,			rect.y,				0));
-		vertices.Add(new Vector3(rect.x+rect.width,	rect.y,				0));
-		vertices.Add(new Vector3(rect.x,			rect.y+rect.height,	0));
-		vertices.Add(new Vector3(rect.x+rect.width,	rect.y+rect.height,	0));
 
-		mesh.vertices = vertices.ToArray();
-
-		var verticeMaxIndex = vertices.Count-1;
-		triangles.Add(verticeMaxIndex-3);
-		triangles.Add(verticeMaxIndex-1);
-		triangles.Add(verticeMaxIndex-2);
-    
-		triangles.Add(verticeMaxIndex-1);
-		triangles.Add(verticeMaxIndex);
-		triangles.Add(verticeMaxIndex-2);
-		
-		normals.Add(Vector3.forward);
-		normals.Add(-Vector3.forward);
-		normals.Add(-Vector3.forward);
-		normals.Add(-Vector3.forward);
-		
-		uvs.Add(new Vector2(0, 0));
-		uvs.Add(new Vector2(1, 0));
-		uvs.Add(new Vector2(0, 1));
-		uvs.Add(new Vector2(1, 1));
-	}
-
-	public Action completedSubPuzzle;
 	public void WasDone() {
 		gameObject.SetActive (false);
 		if (completedSubPuzzle != null) {
 			completedSubPuzzle ();
 		}
 	}
+
 	public void DeactivateAllSubPuzzles() {
 		foreach (var subPuzzle in subPuzzles) {
 			subPuzzle.DeactivateSubPuzzle ();
@@ -383,15 +270,12 @@ public class SubPuzzle : MonoBehaviour {
 		newActiveSubPuzzle.ActivateSubPuzzle();
 	}
 
-	public Texture snapShot;
-	public Texture snapShotCollectableLayer;
 	private void TakeSnapShot(PuzzlePivot pivot) {
 		snapShot = new Texture2D ((int)textureSize.x, (int)textureSize.y, textureFormat, false);
 		Graphics.CopyTexture (puzzleCameraTexture, snapShot);
 
 		if (pivot.collectableObject != null) {
-			snapShotCollectableLayer = new Texture2D((int) textureSize.x, (int) textureSize.y, textureFormat, false);
-			Graphics.CopyTexture(puzzleCameraCollectableTexture, snapShotCollectableLayer);
+			collectableHelper.TakeCollectableSnapshot ();
 			pivot.collectableObject.SetActive(false);
 		}
 	}
@@ -401,11 +285,25 @@ public class SubPuzzle : MonoBehaviour {
 		return puzzlePivot;
 	}
 
-	private void SpawnCollectable(PuzzlePivot puzzlePivot) {
-		puzzlePivot.collectableObject = GameObject.Instantiate(collectable);
-		puzzlePivot.collectableObject.transform.parent = puzzlePivot.pivot.transform;
-		puzzlePivot.collectableObject.transform.localPosition = new Vector3(nodeAsset.collectable.position.x,nodeAsset.collectable.position.y,-2);
-		puzzlePivot.collectableObject.transform.localScale = new Vector3(nodeAsset.collectable.scale.x,nodeAsset.collectable.scale.y,1);
+	private void SetupExtraPivot(PuzzlePivot puzzlePivot) {
+		SetBackgroundColor (puzzlePivots.Count);
+
+		HideAllPuzzlePivots ();
+		TakeSnapShot(puzzlePivot);
+
+		puzzlePivots.Add (puzzlePivot);
+		SpawnPieces (puzzlePivot, snapShot);
+		if (puzzlePivot.collectableObject != null) {
+			collectableHelper.SetupCollectableLayerForPieces(puzzlePivot);
+		}
+
+		ScramblePiecePosition (puzzlePivot.pieces);
+		activePuzzlePivot = puzzlePivot;
+		SetDepthOfPieces ();
+	}
+
+	public void CheckForCollectable() {
+		collectableHelper.CheckForCollectable (activePuzzlePivot, gameBoard.hasCollectedCollectable);
 	}
 
 	private void SetBackgroundColor(int pivotIndex) {
@@ -418,22 +316,6 @@ public class SubPuzzle : MonoBehaviour {
 			backgroundQuad.GetComponent<MeshRenderer> ().material.SetVector ("_v2", new Vector4 (1, 0, 0, 0));
 			backgroundQuad.GetComponent<MeshRenderer> ().material.SetVector ("_v3", new Vector4 (0, 1, 0, 0));
 		}
-	}
-	private void SetupExtraPivot(PuzzlePivot puzzlePivot) {
-		SetBackgroundColor (puzzlePivots.Count);
-
-		HideAllPuzzlePivots ();
-		TakeSnapShot(puzzlePivot);
-		
-		puzzlePivots.Add (puzzlePivot);
-		SpawnPieces (puzzlePivot, snapShot);
-		if (puzzlePivot.collectableObject != null) {
-			SetupCollectableLayerForPieces(puzzlePivot);
-		}
-
-		ScramblePiecePosition (puzzlePivot.pieces);
-		activePuzzlePivot = puzzlePivot;
-		SetDepthOfPieces ();
 	}
 
 	private PuzzlePivot GetNextPuzzlePivot() {
@@ -474,30 +356,6 @@ public class SubPuzzle : MonoBehaviour {
 		return true;
 	}
 
-	public void CheckForCollectable() {
-		if (!LevelView.IsCollectableLayerOn || gameBoard.hasCollectedCollectable || activePuzzlePivot.collectableObject == null) return;
-		if (activePuzzlePivot.collectableObject.activeSelf) return;
-		var collectableSnapablePoint = GetSnapablePointWithPieceId(activePuzzlePivot, collectableKeyPieceDictionary.keyPiece.id);
-
-		if (collectableSnapablePoint != null) {
-			foreach (var piecePairValue in collectableKeyPieceDictionary.pieceDictionary) {
-				var snapablePoint = GetSnapablePointFromRelativePosition(collectableSnapablePoint, piecePairValue.Key);
-				if (snapablePoint == null) return;
-				var snapablePiece = snapablePoint.piece;
-				if (snapablePiece == null || snapablePiece.id != piecePairValue.Value) return;
-			}
-
-			var offset = collectableKeyPieceDictionary.originalPosition-collectableSnapablePoint.piece.transform.localPosition;
-			offset.z = 0;
-			activePuzzlePivot.collectableObject.transform.localPosition -= offset;
-			activePuzzlePivot.collectableObject.SetActive(true);
-
-			foreach(var piece in activePuzzlePivot.pieces) {
-				piece.CollectableLayerRenderer.gameObject.SetActive(false);
-			}
-		}
-	}
-
 	public bool SetupNextPuzzlePivot() {
 		var nextPuzzlePivot = GetNextPuzzlePivot();
 		if (nextPuzzlePivot != null) {
@@ -509,138 +367,4 @@ public class SubPuzzle : MonoBehaviour {
 		}
 		return false;
 	}
-
-	private KeyPieceDictionary collectableKeyPieceDictionary;
-
-	private KeyPieceDictionary SetupKeyPieceDictionary(PuzzlePivot pivot, List<Piece> pieces){
-		var keyPiece = pieces[0];
-		pieces.Remove(keyPiece);
-		var keyPieceDictionary = new KeyPieceDictionary(keyPiece);
-		
-		var keyPieceSnapablePoint = GetSnapablePointWithPieceId(pivot, keyPiece.id);
-		var keyPieceId = pivot.snapablePoints.IndexOf(keyPieceSnapablePoint);
-		
-		foreach (var piece in pieces) {
-			var snapablePoint = GetSnapablePointWithPieceId(pivot, piece.id);
-
-			var relativePos = GetRelativePosition(keyPieceId, pivot.snapablePoints.IndexOf(snapablePoint), pivot);
-			keyPieceDictionary.pieceDictionary.Add(relativePos,piece.id);
-		}
-
-		return keyPieceDictionary;
-	}
-
-	private SnapablePoint GetSnapablePointFromRelativePosition(SnapablePoint currentSnapablePoint, Vector2 relativePosition) {
-		var index = activePuzzlePivot.snapablePoints.IndexOf(currentSnapablePoint);
-		int piecesOnY = (int)activePuzzlePivot.numberOfPieces.y;
-
-		var newX = index + relativePosition.x*piecesOnY;
-		var newY = index + relativePosition.y;
-		
-		if (newX < 0 || newX >= activePuzzlePivot.snapablePoints.Count) return null;
-		if (newY < 0 || newY >= activePuzzlePivot.snapablePoints.Count) return null;
-		
-		if (newY < 0 || newY >= activePuzzlePivot.snapablePoints.Count) return null;
-		
-		if (Mathf.FloorToInt(newY/piecesOnY) != Mathf.FloorToInt((float)index/piecesOnY)) return null;
-
-		var newIndex = (int)(newX + relativePosition.y);
-		
-		return activePuzzlePivot.snapablePoints[newIndex];
-	}
-	
-	private Vector2 GetRelativePosition(int currentIndex, int otherIndex, PuzzlePivot pivot) {
-		int piecesOnY = (int)pivot.numberOfPieces.y;
-
-		var currentX = Mathf.FloorToInt((float)currentIndex/piecesOnY);
-		var currentY = currentIndex % piecesOnY;
-		
-		var otherX = Mathf.FloorToInt((float)otherIndex/piecesOnY);
-		var otherY = otherIndex % piecesOnY;
-		
-		return new Vector2(otherX-currentX, otherY-currentY);
-	}
-	
-	private SnapablePoint GetSnapablePointWithPieceId(PuzzlePivot pivot, string id) {
-		foreach (var snapablePoint in pivot.snapablePoints) {
-			if (snapablePoint.piece != null && snapablePoint.piece.id == id) {
-				return snapablePoint;
-			}
-		}
-		
-		return null;
-	}
-	
-	public SnapablePoint GetSnapablePointFromDirection(SnapablePoint currentSnapablePoint, Direction direction) {
-		var index = activePuzzlePivot.snapablePoints.IndexOf(currentSnapablePoint);
-		int piecesOnY = (int)activePuzzlePivot.numberOfPieces.y;
-		
-		if (direction == Direction.Right) {
-			var newIndex = index + piecesOnY;
-			if (newIndex < 0 || newIndex >= activePuzzlePivot.snapablePoints.Count) return null;
-			return activePuzzlePivot.snapablePoints[newIndex];
-		}
-		if (direction == Direction.Left) {
-			var newIndex = index - piecesOnY;
-			if (newIndex < 0 || newIndex >= activePuzzlePivot.snapablePoints.Count) return null;
-			return activePuzzlePivot.snapablePoints[newIndex];
-		}
-		if (direction == Direction.Up) {
-			var newIndex = index + 1;
-			if (newIndex%piecesOnY == 0) return null;
-			if (newIndex < 0 || newIndex >= activePuzzlePivot.snapablePoints.Count) return null;
-			return activePuzzlePivot.snapablePoints[newIndex];
-		}
-		if (direction == Direction.Down) {
-			var newIndex = index - 1;
-			if (index%piecesOnY == 0) return null;
-			if (newIndex < 0 || newIndex >= activePuzzlePivot.snapablePoints.Count) return null;
-			return activePuzzlePivot.snapablePoints[newIndex];
-		}
-		return null;
-	}
-	
-	public class SnapablePoint {
-		public readonly string id;
-		public readonly Vector3 position;
-		public Piece piece;
-
-		public SnapablePoint(string id, Vector3 position) {
-			this.id = id;
-			this.position = position;
-		}
-	}
-
-	public class PuzzlePivot {
-		public GameObject pivot;
-		public List<Piece> pieces = new List<Piece>();
-		public List<SnapablePoint> snapablePoints = new List<SnapablePoint>();
-		public GameObject collectableObject;
-		public Vector2 numberOfPieces;
-
-		public PuzzlePivot(GameObject parent) {
-			pivot = new GameObject();
-			pivot.transform.parent = parent.transform;
-			pivot.transform.localPosition = new Vector3(0,0,0);
-		}
-	}
-
-	public class KeyPieceDictionary {
-		public readonly Piece keyPiece;
-		public readonly Vector3 originalPosition;
-		public Dictionary<Vector2, string> pieceDictionary = new Dictionary<Vector2, string>();
-		
-		public KeyPieceDictionary(Piece keyPiece) {
-			this.keyPiece = keyPiece;
-			originalPosition = keyPiece.transform.localPosition;
-		}
-	}
-}
-
-public enum Direction
-{
-	Up,
-	Right,
-	Down,
-	Left
 }

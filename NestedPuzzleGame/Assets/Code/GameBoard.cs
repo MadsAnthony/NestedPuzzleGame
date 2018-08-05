@@ -14,7 +14,7 @@ public class GameBoard : MonoBehaviour {
 
 	public Piece draggablePiece;
 	public Vector3 draggablePieceOffset;
-	private SubPuzzle.SnapablePoint draggablePiecePrevSnapablePoint;
+	private SnapablePoint draggablePiecePrevSnapablePoint;
 
 	private RenderTexture puzzleTexture;
 
@@ -212,7 +212,7 @@ public class GameBoard : MonoBehaviour {
 		}
 	}
 
-	private void AssignToSnapablePoint(Piece piece, SubPuzzle.SnapablePoint snapablePoint) {
+	private void AssignToSnapablePoint(Piece piece, SnapablePoint snapablePoint) {
 		snapablePoint.piece = piece;
 		snapablePoint.piece.transform.localPosition = new Vector3(snapablePoint.position.x, snapablePoint.position.y, 0);
 		snapablePoint.piece.Backdrop.SetActive (false);
