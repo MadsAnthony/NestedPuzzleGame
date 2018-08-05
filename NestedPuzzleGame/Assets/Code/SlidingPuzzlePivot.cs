@@ -9,9 +9,8 @@ public class SlidingPuzzlePivot : PuzzlePivot {
 	}
 
 	public override void SetPiecePosition() {
-		var shuffledPieces = pieces.OrderBy(a => Random.Range(0,100));
 		int i = 0;
-		foreach(var piece in shuffledPieces) {
+		foreach(var piece in pieces) {
 			AssignToSnapablePoint (piece, snapablePoints [i]);
 			i++;
 		}
@@ -19,9 +18,34 @@ public class SlidingPuzzlePivot : PuzzlePivot {
 		blankPiece = pieces [0];
 		blankPiece.PieceRenderer.enabled = false;
 		blankPiece.Backdrop.SetActive (false);
+
+		int randomDir = 0;
+		for (int j = 0; j<pieces.Count*5; j++) {
+			var dirList = new List<Direction> ();
+			var addRandom = (int)Random.Range (0, 2);
+			randomDir += addRandom;
+			randomDir %= 4;
+			var blankSnapablePoint = SnapablePoint.GetSnapablePointWithPieceId (this, blankPiece.id);
+			var snapablePoint = SnapablePoint.GetSnapablePointFromDirection(this, blankSnapablePoint, (Direction)randomDir);
+			if (snapablePoint != null) {
+				MovePiece (snapablePoint.piece,0);
+			}
+		}
+		//var shuffledPieces = pieces.OrderBy(a => Random.Range(0,100));
+
+
+
 	}
 
 	public override void PieceClicked(Piece piece, Vector3 mousePosInWorld) {
+		var didMove = MovePiece (piece, 0.2f);
+
+		if (!didMove) {
+			piece.Jiggle ();
+		}
+	}
+
+	private bool MovePiece(Piece piece, float sec) {
 		bool didMove = false;
 		var piecePos = piece.transform.localPosition;
 
@@ -30,8 +54,6 @@ public class SlidingPuzzlePivot : PuzzlePivot {
 		var snapablePointLeft = SnapablePoint.GetSnapablePointFromRelativePosition (this, currentSnapablePoint, new Vector2 (-1,0));
 		var snapablePointUp = SnapablePoint.GetSnapablePointFromRelativePosition (this, currentSnapablePoint, new Vector2 (0,1));
 		var snapablePointDown = SnapablePoint.GetSnapablePointFromRelativePosition (this, currentSnapablePoint, new Vector2 (0,-1));
-
-		float sec = 0.2f;
 		if (snapablePointRight != null && snapablePointRight.piece == blankPiece) {
 			piece.Move (blankPiece.transform.localPosition, sec, () => { AssignToSnapablePoint (piece, snapablePointRight);});
 			blankPiece.Move (piecePos, sec, () => { AssignToSnapablePoint (blankPiece, currentSnapablePoint);});
@@ -53,9 +75,7 @@ public class SlidingPuzzlePivot : PuzzlePivot {
 			didMove = true;
 		}
 
-		if (!didMove) {
-			piece.Jiggle ();
-		}
+		return didMove;
 	}
 
 	public override void TouchReleased() {

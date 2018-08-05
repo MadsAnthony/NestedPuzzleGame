@@ -51,7 +51,11 @@ public class Piece : MonoBehaviour {
 
 	public void Move(Vector3 endPosition, float sec, Action callback) {
 		if (isMoving) return;
-		StartCoroutine (MoveCr (gameObject, endPosition, sec, callback));
+		if (sec >= 0.01f) {
+			StartCoroutine (MoveCr (gameObject, endPosition, sec, callback));
+		} else {
+			callback ();
+		}
 	}
 
 	private bool isMoving;
