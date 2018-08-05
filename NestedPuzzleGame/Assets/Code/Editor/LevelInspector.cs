@@ -56,6 +56,7 @@ public class LevelInspector : Editor {
 
 			var puzzlePivotAsset = selectedNodeAsset.puzzlePivots [selectablePuzzlePivotId];
 			puzzlePivotAsset.numberOfPieces = EditorGUILayout.Vector2Field ("Number of Pieces:", puzzlePivotAsset.numberOfPieces);
+			puzzlePivotAsset.type = (PuzzlePivotType)EditorGUILayout.EnumPopup ("Type:", puzzlePivotAsset.type);
 			selectedNodeAsset.collectable.isActive = EditorGUILayout.Toggle("Has Collectable:", selectedNodeAsset.collectable.isActive);
 			if (selectedNodeAsset.collectable.isActive) {
 				selectedNodeAsset.collectable.position = EditorGUILayout.Vector2Field ("Position of collectable:", selectedNodeAsset.collectable.position);

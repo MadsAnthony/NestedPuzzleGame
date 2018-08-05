@@ -19,6 +19,7 @@ public class SubPuzzle : MonoBehaviour {
 	public int subPuzzleLayer = 0;
 	public string id;
 	public LevelAsset.SubPuzzleNode nodeAsset;
+	public PuzzlePivot ActivePuzzlePivot { get { return activePuzzlePivot; }}
 
 	private RenderTexture puzzleCameraTexture;
 	private GameBoard gameBoard;
@@ -102,37 +103,6 @@ public class SubPuzzle : MonoBehaviour {
 		}
 	}
 
-	public void SetPieceAsToHighestDepth(Piece piece) {
-		if (!activePuzzlePivot.pieces.Contains (piece)) return;
-		activePuzzlePivot.pieces = activePuzzlePivot.pieces.OrderBy (x => x.transform.localPosition.z).Reverse().ToList();
-		activePuzzlePivot.pieces.Remove (piece);
-		activePuzzlePivot.pieces.Add (piece);
-		SetDepthOfPieces ();
-	}
-
-	private void SetDepthOfPieces() {
-		float pieceZPosition = 0;
-		foreach (var piece in activePuzzlePivot.pieces)  {
-			piece.transform.localPosition = new Vector3(piece.transform.localPosition.x,piece.transform.localPosition.y,pieceZPosition);
-			pieceZPosition += -0.1f;
-		}
-	}
-
-
-	private void ScramblePiecePosition(List<Piece> pieces) {
-		foreach (var piece in pieces) {
-			var x = sizeOfPicture.x * 0.5f;
-			var y = sizeOfPicture.y * 0.5f;
-			var pieceScaleX = piece.transform.localScale.x*0.5f;
-			var pieceScaleY = piece.transform.localScale.x*0.5f;
-
-
-			var randomX = UnityEngine.Random.Range ((-x+pieceScaleX)*100,(x-pieceScaleX)*100)*0.01f;
-			var randomY = UnityEngine.Random.Range ((-y+pieceScaleY)*100,(y-pieceScaleY)*100)*0.01f;
-			piece.transform.localPosition = new Vector3 (randomX,randomY,piece.transform.localPosition.z);
-		}
-	}
-
 	private void ArrangePiecePosition(List<Piece> pieces) {
 		var offset = new Vector3 (-1.5f,-4,0);
 		int i = 0;
@@ -165,7 +135,7 @@ public class SubPuzzle : MonoBehaviour {
 	private IEnumerator SpawnExtraPivots(GameObject pivot, int numberOfPivots) {
 		var newPuzzlePivots = new List<PuzzlePivot>();
 		for (int i = 0; i < numberOfPivots; i++) {
-			var newPuzzlePivot = SpawnExtraPivot(pivot);
+			var newPuzzlePivot = SpawnExtraPivot(pivot,nodeAsset.puzzlePivots[i].type);
 			var additionalPieces = 0;
 			if (Director.Instance.IsAlternativeLevel) {
 				additionalPieces = 1;
@@ -280,8 +250,15 @@ public class SubPuzzle : MonoBehaviour {
 		}
 	}
 
-	private PuzzlePivot SpawnExtraPivot(GameObject pivot) {
-		var puzzlePivot = new PuzzlePivot(pivot);
+	private PuzzlePivot SpawnExtraPivot(GameObject pivot, PuzzlePivotType type) {
+		PuzzlePivot puzzlePivot = null;
+		if (type == PuzzlePivotType.jigsaw) {
+			puzzlePivot = new JigsawPuzzlePivot(pivot, sizeOfPicture, gameBoard);
+		}
+		if (type == PuzzlePivotType.sliding) {
+			puzzlePivot = new SlidingPuzzlePivot(pivot, sizeOfPicture, gameBoard);
+		}
+
 		return puzzlePivot;
 	}
 
@@ -297,9 +274,9 @@ public class SubPuzzle : MonoBehaviour {
 			collectableHelper.SetupCollectableLayerForPieces(puzzlePivot);
 		}
 
-		ScramblePiecePosition (puzzlePivot.pieces);
+		puzzlePivot.SetPiecePosition();
 		activePuzzlePivot = puzzlePivot;
-		SetDepthOfPieces ();
+		activePuzzlePivot.SetDepthOfPieces ();
 	}
 
 	public void CheckForCollectable() {
@@ -335,20 +312,9 @@ public class SubPuzzle : MonoBehaviour {
 		}
 	}
 
-	public SnapablePoint GetPointWithinRadius(Vector3 point, float radius) {
-		foreach (var snapablePoint in activePuzzlePivot.snapablePoints) {
-			point.z = snapablePoint.position.z;
-			var dist = snapablePoint.position - point;
-			if (dist.magnitude < radius) {
-				return snapablePoint;
-			}
-		}
-		return null;
-	}
-
 	public bool CheckForWin() {
 		foreach(var piece in activePuzzlePivot.pieces) {
-			var snapablePoint = GetPointWithinRadius (piece.transform.localPosition, 0.2f);
+			var snapablePoint = activePuzzlePivot.GetPointWithinRadius (piece.transform.localPosition, 0.2f);
 			if (snapablePoint == null || snapablePoint.id != piece.id) {
 				return false;
 			}

@@ -12,10 +12,6 @@ public class GameBoard : MonoBehaviour {
 	[SerializeField] private GameObject goalPicture;
 	[SerializeField] private GameObject cameraPivot;
 
-	public Piece draggablePiece;
-	public Vector3 draggablePieceOffset;
-	private SnapablePoint draggablePiecePrevSnapablePoint;
-
 	private RenderTexture puzzleTexture;
 
 	public SubPuzzle activeSubPuzzle;
@@ -108,22 +104,7 @@ public class GameBoard : MonoBehaviour {
 				if (!LevelView.IsCollectableLayerOn) {
 					var piece = hit.collider.GetComponent<Piece>();
 					if (piece != null) {
-						var snapablePoint = activeSubPuzzle.GetPointWithinRadius(piece.transform.localPosition, 0.3f);
-						if (snapablePoint != null && snapablePoint.piece == piece) {
-							draggablePiecePrevSnapablePoint = snapablePoint;
-							snapablePoint.piece = null;
-						} else {
-							draggablePiecePrevSnapablePoint = null;
-						}
-						
-						piece.outline.SetActive(true);
-						piece.Backdrop.SetActive (true);
-						var offSet = piece.transform.position - mousePosInWorld;
-						offSet.z = 0;
-						draggablePieceOffset = offSet;
-						draggablePiece = piece;
-						activeSubPuzzle.SetPieceAsToHighestDepth(draggablePiece);
-
+						activeSubPuzzle.ActivePuzzlePivot.PieceClicked (piece, mousePosInWorld);
 						break;
 					}
 				}
@@ -148,34 +129,17 @@ public class GameBoard : MonoBehaviour {
 			}
 		}
 
-		if (draggablePiece != null) {
-			var mousePos = Camera.main.ScreenToWorldPoint (Input.mousePosition);
-			draggablePiece.transform.position = new Vector3(mousePos.x,mousePos.y,draggablePiece.transform.position.z)+draggablePieceOffset;
+		if (activeSubPuzzle != null && activeSubPuzzle.ActivePuzzlePivot != null) {
+			activeSubPuzzle.ActivePuzzlePivot.CustomUpdate ();
 		}
 
-		if (Input.GetMouseButtonUp (0) && (draggablePiece != null)) {
-			var snapablePoint = activeSubPuzzle.GetPointWithinRadius (draggablePiece.transform.localPosition, 0.3f);
-			if (snapablePoint != null) {
-				if (snapablePoint.piece != null) {
-					if (draggablePiecePrevSnapablePoint != null) {
-						var snapablePointPiece = snapablePoint.piece;
-						var prevSnapablePoint = draggablePiecePrevSnapablePoint;
-						snapablePoint.piece.Move (prevSnapablePoint.position, () => { AssignToSnapablePoint (snapablePointPiece, prevSnapablePoint); });
-						AssignToSnapablePoint (draggablePiece, snapablePoint);
-					} else {
-						draggablePiece.Jiggle ();
-					}
-				} else {
-					AssignToSnapablePoint (draggablePiece, snapablePoint);
-				}
-
-			}
-			draggablePiece.outline.SetActive(false);
-			draggablePiece = null;
+		if (Input.GetMouseButtonUp (0)) {
+			activeSubPuzzle.ActivePuzzlePivot.TouchReleased ();
 		}
 	}
 
-	private void CheckForWin() {
+	public void CheckForWin() {
+		if (activeSubPuzzle == null) return;
 		var isDone = activeSubPuzzle.CheckForWin ();
 		if (isDone) {
 			var hasMorePuzzles = activeSubPuzzle.SetupNextPuzzlePivot ();
@@ -210,13 +174,6 @@ public class GameBoard : MonoBehaviour {
 				activeSubPuzzle = activeSubPuzzle.parentSubPuzzle;
 			}
 		}
-	}
-
-	private void AssignToSnapablePoint(Piece piece, SnapablePoint snapablePoint) {
-		snapablePoint.piece = piece;
-		snapablePoint.piece.transform.localPosition = new Vector3(snapablePoint.position.x, snapablePoint.position.y, 0);
-		snapablePoint.piece.Backdrop.SetActive (false);
-		CheckForWin ();
 	}
 
 	public void ZoomToLayer(int layerNumber) {

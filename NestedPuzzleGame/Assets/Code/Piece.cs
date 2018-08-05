@@ -49,6 +49,11 @@ public class Piece : MonoBehaviour {
 		StartCoroutine (MoveCr (gameObject, endPosition, Mathf.Max(0.1f*distance.magnitude,0.5f), callback));
 	}
 
+	public void Move(Vector3 endPosition, float sec, Action callback) {
+		if (isMoving) return;
+		StartCoroutine (MoveCr (gameObject, endPosition, sec, callback));
+	}
+
 	private bool isMoving;
 	private IEnumerator MoveCr(GameObject gameObject, Vector3 endPosition, float sec, Action callback) {
 		isMoving = true;

@@ -25,6 +25,7 @@ public class LevelAsset : ScriptableObject {
 
 	[Serializable]
 	public class PuzzlePivot {
+		public PuzzlePivotType type;
 		public Vector2 numberOfPieces = new Vector2(1,1);
 		public Collectable collectable = new Collectable();
 	}
@@ -35,4 +36,9 @@ public class LevelAsset : ScriptableObject {
 		public Vector2 position;
 		public Vector2 scale = new Vector2(1,1);
 	}
+}
+
+public enum PuzzlePivotType {
+	jigsaw,
+	sliding
 }
