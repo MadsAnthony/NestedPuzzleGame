@@ -31,10 +31,6 @@ public class SlidingPuzzlePivot : PuzzlePivot {
 				MovePiece (snapablePoint.piece,0);
 			}
 		}
-		//var shuffledPieces = pieces.OrderBy(a => Random.Range(0,100));
-
-
-
 	}
 
 	public override void PieceClicked(Piece piece, Vector3 mousePosInWorld) {
