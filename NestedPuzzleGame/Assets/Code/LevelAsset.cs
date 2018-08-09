@@ -40,5 +40,6 @@ public class LevelAsset : ScriptableObject {
 
 public enum PuzzlePivotType {
 	jigsaw,
-	sliding
+	sliding,
+	rotating
 }

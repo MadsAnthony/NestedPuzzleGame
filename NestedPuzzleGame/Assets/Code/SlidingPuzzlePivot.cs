@@ -17,6 +17,7 @@ public class SlidingPuzzlePivot : PuzzlePivot {
 
 		blankPiece = pieces [0];
 		blankPiece.PieceRenderer.enabled = false;
+		blankPiece.PieceRendererBack.enabled = false;
 		blankPiece.Backdrop.SetActive (false);
 
 		int randomDir = 0;

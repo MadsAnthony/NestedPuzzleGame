@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class Piece : MonoBehaviour {
 	[SerializeField] private MeshRenderer pieceRenderer;
+	[SerializeField] private MeshRenderer pieceRendererBack;
 	[SerializeField] private MeshRenderer collectableLayerRenderer;
 	[SerializeField] private GameObject backdrop;
 	[SerializeField] private AnimationCurve pieceJiggleCurve;
@@ -17,6 +18,9 @@ public class Piece : MonoBehaviour {
 	public MeshRenderer PieceRenderer {
 		get { return pieceRenderer; }
 	}
+	public MeshRenderer PieceRendererBack {
+		get { return pieceRendererBack; }
+	}
 	public MeshRenderer CollectableLayerRenderer {
 		get { return collectableLayerRenderer; }
 	}
@@ -24,13 +28,13 @@ public class Piece : MonoBehaviour {
 	public string id;
 
 	public void Jiggle() {
-		if (isRotating) return;
-		StartCoroutine(RotateCr (gameObject, new Vector3 (0, 0, 45), 0.2f));
+		if (isJiggling) return;
+		StartCoroutine(JiggleCr (gameObject, new Vector3 (0, 0, 45), 0.2f));
 	}
 
-	private bool isRotating;
-	private IEnumerator RotateCr(GameObject gameObject, Vector3 endRotation, float sec) {
-		isRotating = true;
+	private bool isJiggling;
+	private IEnumerator JiggleCr(GameObject gameObject, Vector3 endRotation, float sec) {
+		isJiggling = true;
 		var startRotation = gameObject.transform.localEulerAngles;
 		float t = 0;
 		while (t < 1) {
@@ -40,7 +44,7 @@ public class Piece : MonoBehaviour {
 			yield return null;
 		}
 		gameObject.transform.localEulerAngles = startRotation;
-		isRotating = false;
+		isJiggling = false;
 	}
 
 	public void Move(Vector3 endPosition, Action callback) {
@@ -75,5 +79,25 @@ public class Piece : MonoBehaviour {
 			callback ();
 		}
 		isMoving = false;
+	}
+
+	public void Rotate(Vector3 endRotation, float sec) {
+		if (isRotating) return;
+		StartCoroutine(RotateCr(gameObject, endRotation, sec));
+	}
+
+	private bool isRotating;
+	private IEnumerator RotateCr(GameObject gameObject, Vector3 endRotation, float sec) {
+		isRotating = true;
+		var startRotation = gameObject.transform.localEulerAngles;
+		float t = 0;
+		while (t < 1) {
+			t += (1/sec)*Time.deltaTime;
+			var value = pieceMoveCurve.Evaluate (t);
+			gameObject.transform.localEulerAngles = (startRotation * (1 - t)) + endRotation * t;
+			yield return null;
+		}
+		gameObject.transform.localEulerAngles = endRotation;
+		isRotating = false;
 	}
 }

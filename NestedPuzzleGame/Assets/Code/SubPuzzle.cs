@@ -258,6 +258,9 @@ public class SubPuzzle : MonoBehaviour {
 		if (type == PuzzlePivotType.sliding) {
 			puzzlePivot = new SlidingPuzzlePivot(pivot, sizeOfPicture, gameBoard);
 		}
+		if (type == PuzzlePivotType.rotating) {
+			puzzlePivot = new RotatingPuzzlePivot(pivot, sizeOfPicture, gameBoard);
+		}
 
 		return puzzlePivot;
 	}
