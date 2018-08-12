@@ -24,11 +24,16 @@ public class GameBoard : MonoBehaviour {
 
 	private int additionalPieces;
 	public Dictionary<string,List<LevelAsset.SubPuzzleNode>> nodeAssetDictionary;
+	public LevelAsset levelOverride;
 	void Start () {
 		if (Director.Instance.IsAlternativeLevel) {
 			additionalPieces = 1;
 		}
-		level = Director.LevelDatabase.levels [Director.Instance.LevelIndex];
+		if (levelOverride == null) {
+			level = Director.LevelDatabase.levels [Director.Instance.LevelIndex];
+		} else {
+			level = levelOverride;
+		}
 		
 		numberOfPieces = level.numberOfPieces+new Vector2(additionalPieces,additionalPieces);
 		
@@ -140,7 +145,7 @@ public class GameBoard : MonoBehaviour {
 
 	public void CheckForWin() {
 		if (activeSubPuzzle == null) return;
-		var isDone = activeSubPuzzle.CheckForWin ();
+		var isDone = activeSubPuzzle.ActivePuzzlePivot.CheckForWin ();
 		if (isDone) {
 			var hasMorePuzzles = activeSubPuzzle.SetupNextPuzzlePivot ();
 			if (!hasMorePuzzles) {

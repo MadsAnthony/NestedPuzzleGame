@@ -36,19 +36,25 @@ public class CollectableHelper {
 		Graphics.CopyTexture(puzzleCameraCollectableTexture, snapShotCollectableLayer);
 	}
 
+	private bool IsPiecesPlacedCorrectly(PuzzlePivot puzzlePivot) {
+		var collectableSnapablePoint = SnapablePoint.GetSnapablePointWithPieceId(puzzlePivot, collectableKeyPieceDictionary.keyPiece.id);
+		if (collectableSnapablePoint == null) return false;
+
+		foreach (var piecePairValue in collectableKeyPieceDictionary.pieceDictionary) {
+			var snapablePoint = SnapablePoint.GetSnapablePointFromRelativePosition(puzzlePivot, collectableSnapablePoint, piecePairValue.Key);
+			if (snapablePoint == null) return false;
+			var snapablePiece = snapablePoint.piece;
+			if (snapablePiece == null || snapablePiece.id != piecePairValue.Value) return false;
+		}
+
+		return true;
+	}
+
 	public void CheckForCollectable(PuzzlePivot puzzlePivot, bool hasCollectedCollectable) {
 		if (!LevelView.IsCollectableLayerOn || hasCollectedCollectable || puzzlePivot.collectableObject == null) return;
 		if (puzzlePivot.collectableObject.activeSelf) return;
-		var collectableSnapablePoint = SnapablePoint.GetSnapablePointWithPieceId(puzzlePivot, collectableKeyPieceDictionary.keyPiece.id);
-
-		if (collectableSnapablePoint != null) {
-			foreach (var piecePairValue in collectableKeyPieceDictionary.pieceDictionary) {
-				var snapablePoint = SnapablePoint.GetSnapablePointFromRelativePosition(puzzlePivot, collectableSnapablePoint, piecePairValue.Key);
-				if (snapablePoint == null) return;
-				var snapablePiece = snapablePoint.piece;
-				if (snapablePiece == null || snapablePiece.id != piecePairValue.Value) return;
-			}
-
+		if (collectableKeyPieceDictionary.IsPiecesPlacedCorrectly (puzzlePivot)) {
+			var collectableSnapablePoint = SnapablePoint.GetSnapablePointWithPieceId(puzzlePivot, collectableKeyPieceDictionary.keyPiece.id);
 			var offset = collectableKeyPieceDictionary.originalPosition-collectableSnapablePoint.piece.transform.localPosition;
 			offset.z = 0;
 			puzzlePivot.collectableObject.transform.localPosition -= offset;

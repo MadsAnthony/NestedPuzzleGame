@@ -24,7 +24,11 @@ public class Piece : MonoBehaviour {
 	public MeshRenderer CollectableLayerRenderer {
 		get { return collectableLayerRenderer; }
 	}
-	
+
+	public string FullId {
+		get { return id+Mathf.RoundToInt(transform.localRotation.y).ToString();}
+	}
+
 	public string id;
 
 	public void Jiggle() {
@@ -81,13 +85,13 @@ public class Piece : MonoBehaviour {
 		isMoving = false;
 	}
 
-	public void Rotate(Vector3 endRotation, float sec) {
+	public void Rotate(Vector3 endRotation, float sec,  Action callback) {
 		if (isRotating) return;
-		StartCoroutine(RotateCr(gameObject, endRotation, sec));
+		StartCoroutine(RotateCr(gameObject, endRotation, sec, callback));
 	}
 
 	private bool isRotating;
-	private IEnumerator RotateCr(GameObject gameObject, Vector3 endRotation, float sec) {
+	private IEnumerator RotateCr(GameObject gameObject, Vector3 endRotation, float sec, Action callback) {
 		isRotating = true;
 		var startRotation = gameObject.transform.localEulerAngles;
 		float t = 0;
@@ -96,6 +100,9 @@ public class Piece : MonoBehaviour {
 			var value = pieceMoveCurve.Evaluate (t);
 			gameObject.transform.localEulerAngles = (startRotation * (1 - t)) + endRotation * t;
 			yield return null;
+		}
+		if (callback != null) {
+			callback ();
 		}
 		gameObject.transform.localEulerAngles = endRotation;
 		isRotating = false;

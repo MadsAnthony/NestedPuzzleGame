@@ -65,7 +65,6 @@ public class SubPuzzle : MonoBehaviour {
 		StartCoroutine (SpawnExtraPivots(background, nodeAsset.puzzlePivots.Count));
 	}
 
-	
 	private void SpawnPieces(PuzzlePivot pivot, Texture texture) {
 		int piecesOnX = (int)pivot.numberOfPieces.x;
 		int piecesOnY = (int)pivot.numberOfPieces.y;
@@ -101,6 +100,7 @@ public class SubPuzzle : MonoBehaviour {
 				pieceZPosition += -0.1f;
 			}
 		}
+		pivot.SetupGoalKeypieceDictionary ();
 	}
 
 	private void ArrangePiecePosition(List<Piece> pieces) {
@@ -313,16 +313,6 @@ public class SubPuzzle : MonoBehaviour {
 		foreach (var puzzlePivot in puzzlePivots) {
 			puzzlePivot.pivot.SetActive (false);
 		}
-	}
-
-	public bool CheckForWin() {
-		foreach(var piece in activePuzzlePivot.pieces) {
-			var snapablePoint = activePuzzlePivot.GetPointWithinRadius (piece.transform.localPosition, 0.2f);
-			if (snapablePoint == null || snapablePoint.id != piece.id) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	public bool SetupNextPuzzlePivot() {

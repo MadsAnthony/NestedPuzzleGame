@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Rotorz.ReorderableList;
+using UnityEditor.SceneManagement;
 
 [CustomEditor(typeof(LevelAsset))]
 public class LevelInspector : Editor {
 	private RenderTexture editorRenderTexture;
-	private Vector2 windowOffset = new Vector2(20,180);
+	private Vector2 windowOffset = new Vector2(20,200);
 	private Vector2 windowSize = new Vector2(500,500);
 	private Color windowBackgroundColor = new Color (1,1,1,1);
 
@@ -18,11 +19,20 @@ public class LevelInspector : Editor {
 	private int selectablePuzzlePivotId;
 
 	public override void OnInspectorGUI() {
+		if (EditorApplication.isPlaying) return;
 		bool reconstruct = false;
 		LevelAsset myTarget = (LevelAsset)target;
 
 		var editorModeCached = editorMode;
 		string[] editorModeOptions = {"Select", "Add"};
+		if (GUILayout.Button ("Play Level")) {
+			DestroyLevel ();
+			EditorApplication.isPlaying = false;
+			EditorSceneManager.OpenScene ("Assets/Scenes/LevelScene.unity");
+			var gameBoard = GameObject.Find ("GameBoard").GetComponent<GameBoard> ();
+			gameBoard.levelOverride = myTarget;
+			EditorApplication.isPlaying = true;
+		}
 		myTarget.isMasterPuzzle = EditorGUILayout.Toggle("IsMasterPuzzle:", myTarget.isMasterPuzzle);
 		editorMode = (EditorMode)EditorGUILayout.Popup ("Mode", (int)editorMode, editorModeOptions);
 		myTarget.picture = EditorGUILayout.ObjectField ("GoalTexture", myTarget.picture, typeof(Texture), false) as Texture;

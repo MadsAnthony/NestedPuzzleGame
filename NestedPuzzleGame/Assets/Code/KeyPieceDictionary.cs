@@ -14,7 +14,6 @@ public class KeyPieceDictionary {
 
 	public static KeyPieceDictionary SetupKeyPieceDictionary(PuzzlePivot pivot, List<Piece> pieces){
 		var keyPiece = pieces[0];
-		pieces.Remove(keyPiece);
 		var keyPieceDictionary = new KeyPieceDictionary(keyPiece);
 
 		var keyPieceSnapablePoint = SnapablePoint.GetSnapablePointWithPieceId(pivot, keyPiece.id);
@@ -24,9 +23,23 @@ public class KeyPieceDictionary {
 			var snapablePoint = SnapablePoint.GetSnapablePointWithPieceId(pivot, piece.id);
 
 			var relativePos = SnapablePoint.GetRelativePosition(pivot, keyPieceId, pivot.snapablePoints.IndexOf(snapablePoint));
-			keyPieceDictionary.pieceDictionary.Add(relativePos,piece.id);
+			keyPieceDictionary.pieceDictionary.Add(relativePos,piece.FullId);
 		}
 
 		return keyPieceDictionary;
+	}
+
+	public bool IsPiecesPlacedCorrectly(PuzzlePivot puzzlePivot) {
+		var collectableSnapablePoint = SnapablePoint.GetSnapablePointWithPieceId(puzzlePivot, keyPiece.id);
+		if (collectableSnapablePoint == null) return false;
+
+		foreach (var piecePairValue in pieceDictionary) {
+			var snapablePoint = SnapablePoint.GetSnapablePointFromRelativePosition(puzzlePivot, collectableSnapablePoint, piecePairValue.Key);
+			if (snapablePoint == null) return false;
+			var snapablePiece = snapablePoint.piece;
+			if (snapablePiece == null || snapablePiece.FullId != piecePairValue.Value) return false;
+		}
+
+		return true;
 	}
 }

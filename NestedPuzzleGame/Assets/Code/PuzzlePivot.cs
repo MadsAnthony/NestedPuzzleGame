@@ -11,6 +11,7 @@ public abstract class PuzzlePivot {
 	public GameObject collectableObject;
 	public Vector2 numberOfPieces;
 	private Vector2 sizeOfPicture;
+	private KeyPieceDictionary goalKeyPieceDictionary;
 
 	public PuzzlePivot(GameObject parent, Vector2 sizeOfPicture, GameBoard gameboard) {
 		pivot = new GameObject();
@@ -44,6 +45,25 @@ public abstract class PuzzlePivot {
 			piece.transform.localPosition = new Vector3(piece.transform.localPosition.x,piece.transform.localPosition.y,pieceZPosition);
 			pieceZPosition += -0.1f;
 		}
+	}
+
+	public void SetupGoalKeypieceDictionary() {
+		int i = 0;
+		foreach (var snapablePoint in snapablePoints) {
+			pieces[i].transform.localPosition = new Vector3(snapablePoint.position.x,snapablePoint.position.y,pieces[i].transform.localPosition.z);
+			snapablePoint.piece = pieces[i];
+			i++;
+		}
+
+		goalKeyPieceDictionary = KeyPieceDictionary.SetupKeyPieceDictionary (this, pieces);
+
+		foreach (var snapablePoint in snapablePoints) {
+			snapablePoint.piece = null;
+		}
+	}
+
+	public bool CheckForWin() {
+		return goalKeyPieceDictionary.IsPiecesPlacedCorrectly (this);
 	}
 
 	internal void AssignToSnapablePoint(Piece piece, SnapablePoint snapablePoint) {
