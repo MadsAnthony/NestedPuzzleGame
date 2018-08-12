@@ -89,7 +89,9 @@ public class SubPuzzle : MonoBehaviour {
 				
 				pieceObject.PieceRenderer.material.SetTextureScale ("_MainTex",scale);
 				pieceObject.PieceRenderer.material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
-				pieceObject.PieceRenderer.material.SetTexture ("_MainTex", texture);
+
+				pieceObject.PieceRendererBack.material.SetTextureScale ("_MainTex",scale);
+				pieceObject.PieceRendererBack.material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
 
 				pieceObject.CollectableLayerRenderer.gameObject.SetActive(false);
 				pivot.pieces.Add (pieceObject);
@@ -100,6 +102,11 @@ public class SubPuzzle : MonoBehaviour {
 				pieceZPosition += -0.1f;
 			}
 		}
+		foreach(var pieceObject in pivot.pieces) {
+			pieceObject.PieceRenderer.material.SetTexture ("_MainTex", texture);
+			pieceObject.PieceRendererBack.material.SetTexture ("_MainTex", texture);
+		}
+
 		pivot.SetupGoalKeypieceDictionary ();
 	}
 
