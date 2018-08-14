@@ -5,7 +5,7 @@ using System.Linq;
 
 public class SlidingPuzzlePivot : PuzzlePivot {
 	private Piece blankPiece;
-	public SlidingPuzzlePivot(GameObject parent, Vector2 sizeOfPicture, GameBoard gameboard) : base(parent, sizeOfPicture, gameboard) {
+	public SlidingPuzzlePivot(GameObject parent, Vector2 sizeOfPicture, GameBoard gameboard, SubPuzzle subPuzzle) : base(parent, sizeOfPicture, gameboard, subPuzzle) {
 	}
 
 	public override void SetPiecePosition() {

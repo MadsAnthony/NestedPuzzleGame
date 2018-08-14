@@ -5,7 +5,6 @@ using System.Linq;
 using UnityEngine;
 
 public class SubPuzzle : MonoBehaviour {
-	[SerializeField] private GameObject piece;
 	[SerializeField] private Camera puzzleCamera;
 	[SerializeField] private Camera puzzleCameraCollectable;
 	[SerializeField] private GameObject background;
@@ -13,6 +12,7 @@ public class SubPuzzle : MonoBehaviour {
 	[SerializeField] private SubPuzzleButton subPuzzleButton;
 	[SerializeField] private Material outlineMaterial;
 
+	public GameObject BackgroundQuad { get { return backgroundQuad; } }
 	public SubPuzzle parentSubPuzzle;
 	public Action completedSubPuzzle;
 	public Texture snapShot;
@@ -65,51 +65,6 @@ public class SubPuzzle : MonoBehaviour {
 		StartCoroutine (SpawnExtraPivots(background, nodeAsset.puzzlePivots.Count));
 	}
 
-	private void SpawnPieces(PuzzlePivot pivot, Texture texture) {
-		int piecesOnX = (int)pivot.numberOfPieces.x;
-		int piecesOnY = (int)pivot.numberOfPieces.y;
-
-		var scale = new Vector2(1f/piecesOnX, 1f/piecesOnY);
-
-		float pieceZPosition = -1;
-		for (int i = 0; i < piecesOnX; i++) {
-			for (int j = 0; j < piecesOnY; j++) {
-				var id = i.ToString () + j.ToString ();
-
-				var midPointX = sizeOfPicture.x*(scale.x*(i+0.5f)-0.5f);
-				var midPointY = sizeOfPicture.y*(scale.y*(j+0.5f)-0.5f);
-				var newSnapablePoint = new SnapablePoint (id, new Vector3 (midPointX, midPointY, -1));
-				pivot.snapablePoints.Add(newSnapablePoint);
-
-				var pieceObject = GameObject.Instantiate (piece).GetComponent<Piece>();
-				pieceObject.transform.parent = pivot.pivot.transform;
-				pieceObject.transform.localPosition = new Vector3 (0, 0, pieceZPosition);
-				pieceObject.transform.localScale = new Vector3(sizeOfPicture.x*scale.x,sizeOfPicture.y*scale.y,1);
-				pieceObject.id = id;
-				
-				pieceObject.PieceRenderer.material.SetTextureScale ("_MainTex",scale);
-				pieceObject.PieceRenderer.material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
-
-				pieceObject.PieceRendererBack.material.SetTextureScale ("_MainTex",scale);
-				pieceObject.PieceRendererBack.material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
-
-				pieceObject.CollectableLayerRenderer.gameObject.SetActive(false);
-				pivot.pieces.Add (pieceObject);
-
-				pieceObject.outline = PieceOutlineHelper.GenerateMeshOutline(pieceObject.gameObject);
-				pieceObject.outline.SetActive (false);
-
-				pieceZPosition += -0.1f;
-			}
-		}
-		foreach(var pieceObject in pivot.pieces) {
-			pieceObject.PieceRenderer.material.SetTexture ("_MainTex", texture);
-			pieceObject.PieceRendererBack.material.SetTexture ("_MainTex", texture);
-		}
-
-		pivot.SetupGoalKeypieceDictionary ();
-	}
-
 	private void ArrangePiecePosition(List<Piece> pieces) {
 		var offset = new Vector3 (-1.5f,-4,0);
 		int i = 0;
@@ -148,6 +103,7 @@ public class SubPuzzle : MonoBehaviour {
 				additionalPieces = 1;
 			}
 			newPuzzlePivot.numberOfPieces = nodeAsset.puzzlePivots[i].numberOfPieces+new Vector2(1,1)*additionalPieces;
+			newPuzzlePivot.subPuzzle = this;
 			newPuzzlePivots.Add(newPuzzlePivot);
 
 			if (nodeAsset.collectable.isActive && i == numberOfPivots-1) {
@@ -161,7 +117,7 @@ public class SubPuzzle : MonoBehaviour {
 		}
 
 		foreach (var newPuzzlePivot in newPuzzlePivots) {
-			SetupExtraPivot (newPuzzlePivot);
+			yield return SetupExtraPivot (newPuzzlePivot);
 			yield return null;
 		}
 
@@ -247,9 +203,14 @@ public class SubPuzzle : MonoBehaviour {
 		newActiveSubPuzzle.ActivateSubPuzzle();
 	}
 
-	private void TakeSnapShot(PuzzlePivot pivot) {
-		snapShot = new Texture2D ((int)textureSize.x, (int)textureSize.y, textureFormat, false);
+	public Texture2D TakeSnapShot() {
+		var snapShot = new Texture2D ((int)textureSize.x, (int)textureSize.y, textureFormat, false);
 		Graphics.CopyTexture (puzzleCameraTexture, snapShot);
+		return snapShot;
+	}
+
+	private void TakeSnapShot(PuzzlePivot pivot) {
+		snapShot = TakeSnapShot ();
 
 		if (pivot.collectableObject != null) {
 			collectableHelper.TakeCollectableSnapshot ();
@@ -260,26 +221,26 @@ public class SubPuzzle : MonoBehaviour {
 	private PuzzlePivot SpawnExtraPivot(GameObject pivot, PuzzlePivotType type) {
 		PuzzlePivot puzzlePivot = null;
 		if (type == PuzzlePivotType.jigsaw) {
-			puzzlePivot = new JigsawPuzzlePivot(pivot, sizeOfPicture, gameBoard);
+			puzzlePivot = new JigsawPuzzlePivot(pivot, sizeOfPicture, gameBoard, this);
 		}
 		if (type == PuzzlePivotType.sliding) {
-			puzzlePivot = new SlidingPuzzlePivot(pivot, sizeOfPicture, gameBoard);
+			puzzlePivot = new SlidingPuzzlePivot(pivot, sizeOfPicture, gameBoard, this);
 		}
 		if (type == PuzzlePivotType.rotating) {
-			puzzlePivot = new RotatingPuzzlePivot(pivot, sizeOfPicture, gameBoard);
+			puzzlePivot = new RotatingPuzzlePivot(pivot, sizeOfPicture, gameBoard, this);
 		}
 
 		return puzzlePivot;
 	}
 
-	private void SetupExtraPivot(PuzzlePivot puzzlePivot) {
+	private IEnumerator SetupExtraPivot(PuzzlePivot puzzlePivot) {
 		SetBackgroundColor (puzzlePivots.Count);
 
 		HideAllPuzzlePivots ();
 		TakeSnapShot(puzzlePivot);
 
 		puzzlePivots.Add (puzzlePivot);
-		SpawnPieces (puzzlePivot, snapShot);
+		yield return puzzlePivot.SpawnPieces (snapShot);
 		if (puzzlePivot.collectableObject != null) {
 			collectableHelper.SetupCollectableLayerForPieces(puzzlePivot);
 		}
@@ -293,7 +254,7 @@ public class SubPuzzle : MonoBehaviour {
 		collectableHelper.CheckForCollectable (activePuzzlePivot, gameBoard.hasCollectedCollectable);
 	}
 
-	private void SetBackgroundColor(int pivotIndex) {
+	public void SetBackgroundColor(int pivotIndex) {
 		if (pivotIndex == 0) {
 			backgroundQuad.GetComponent<MeshRenderer> ().material.SetVector ("_v1", new Vector4 (1, 0, 0, 0));
 			backgroundQuad.GetComponent<MeshRenderer> ().material.SetVector ("_v2", new Vector4 (0, 1, 0, 0));

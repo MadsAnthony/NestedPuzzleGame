@@ -422,10 +422,11 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 0
   goalPicture: {fileID: 0}
-  draggablePiece: {fileID: 0}
-  draggablePieceOffset: {x: 0, y: 0, z: 0}
+  cameraPivot: {fileID: 0}
+  piece: {fileID: 1405924686454514, guid: 28b188a0d4669fb44a3a5eea28c03d50, type: 2}
   activeSubPuzzle: {fileID: 0}
   hasCollectedCollectable: 0
+  levelOverride: {fileID: 0}
 --- !u!114 &114965788653702652
 MonoBehaviour:
   m_ObjectHideFlags: 1

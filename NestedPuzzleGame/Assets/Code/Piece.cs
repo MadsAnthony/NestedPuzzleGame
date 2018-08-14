@@ -31,6 +31,8 @@ public class Piece : MonoBehaviour {
 
 	public string id;
 
+	public PuzzlePivot puzzlePivot;
+
 	public void Jiggle() {
 		if (isJiggling) return;
 		StartCoroutine(JiggleCr (gameObject, new Vector3 (0, 0, 45), 0.2f));

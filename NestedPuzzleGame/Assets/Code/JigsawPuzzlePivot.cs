@@ -8,7 +8,7 @@ public class JigsawPuzzlePivot : PuzzlePivot {
 	private Vector3 draggablePieceOffset;
 	private SnapablePoint draggablePiecePrevSnapablePoint;
 
-	public JigsawPuzzlePivot(GameObject parent, Vector2 sizeOfPicture, GameBoard gameboard) : base(parent, sizeOfPicture, gameboard) {
+	public JigsawPuzzlePivot(GameObject parent, Vector2 sizeOfPicture, GameBoard gameboard, SubPuzzle subPuzzle) : base(parent, sizeOfPicture, gameboard, subPuzzle) {
 	}
 
 	public override void SetPiecePosition() {

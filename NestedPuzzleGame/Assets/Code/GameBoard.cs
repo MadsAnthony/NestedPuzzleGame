@@ -11,7 +11,9 @@ public class GameBoard : MonoBehaviour {
 	[SerializeField] private AnimationCurve easeInOutCurve;
 	[SerializeField] private GameObject goalPicture;
 	[SerializeField] private GameObject cameraPivot;
+	[SerializeField] private GameObject piece;
 
+	public GameObject PiecePrefab { get { return piece; }}
 	private RenderTexture puzzleTexture;
 
 	public SubPuzzle activeSubPuzzle;
@@ -109,7 +111,7 @@ public class GameBoard : MonoBehaviour {
 				if (!LevelView.IsCollectableLayerOn) {
 					var piece = hit.collider.GetComponent<Piece>();
 					if (piece != null) {
-						activeSubPuzzle.ActivePuzzlePivot.PieceClicked (piece, mousePosInWorld);
+						piece.puzzlePivot.PieceClicked (piece, mousePosInWorld);
 						break;
 					}
 				}
@@ -144,7 +146,7 @@ public class GameBoard : MonoBehaviour {
 	}
 
 	public void CheckForWin() {
-		if (activeSubPuzzle == null) return;
+		if (activeSubPuzzle == null || activeSubPuzzle.ActivePuzzlePivot == null) return;
 		var isDone = activeSubPuzzle.ActivePuzzlePivot.CheckForWin ();
 		if (isDone) {
 			var hasMorePuzzles = activeSubPuzzle.SetupNextPuzzlePivot ();

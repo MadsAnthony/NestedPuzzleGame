@@ -9,15 +9,18 @@ public abstract class PuzzlePivot {
 	public List<Piece> pieces = new List<Piece>();
 	public List<SnapablePoint> snapablePoints = new List<SnapablePoint>();
 	public GameObject collectableObject;
+	public SubPuzzle subPuzzle;
 	public Vector2 numberOfPieces;
 	private Vector2 sizeOfPicture;
 	private KeyPieceDictionary goalKeyPieceDictionary;
 
-	public PuzzlePivot(GameObject parent, Vector2 sizeOfPicture, GameBoard gameboard) {
+	public PuzzlePivot(GameObject parent, Vector2 sizeOfPicture, GameBoard gameboard, SubPuzzle subPuzzle) {
 		pivot = new GameObject();
 		pivot.transform.parent = parent.transform;
 		pivot.transform.localPosition = new Vector3(0,0,0);
 		this.gameboard = gameboard;
+		this.subPuzzle = subPuzzle;
+		this.sizeOfPicture = sizeOfPicture;
 	}
 
 	public SnapablePoint GetPointWithinRadius(Vector3 point, float radius) {
@@ -62,8 +65,62 @@ public abstract class PuzzlePivot {
 		}
 	}
 
-	public bool CheckForWin() {
+	internal virtual bool CheckForWin() {
 		return goalKeyPieceDictionary.IsPiecesPlacedCorrectly (this);
+	}
+
+	internal virtual IEnumerator SpawnPieces(Texture texture) {
+		int piecesOnX = (int)numberOfPieces.x;
+		int piecesOnY = (int)numberOfPieces.y;
+
+		var scale = new Vector2(1f/piecesOnX, 1f/piecesOnY);
+
+		float pieceZPosition = -1;
+		for (int i = 0; i < piecesOnX; i++) {
+			for (int j = 0; j < piecesOnY; j++) {
+				var id = i.ToString () + j.ToString ();
+
+				var midPointX = sizeOfPicture.x*(scale.x*(i+0.5f)-0.5f);
+				var midPointY = sizeOfPicture.y*(scale.y*(j+0.5f)-0.5f);
+				var newSnapablePoint = new SnapablePoint (id, new Vector3 (midPointX, midPointY, -1));
+				snapablePoints.Add(newSnapablePoint);
+
+				var pieceObject = GameObject.Instantiate (gameboard.PiecePrefab).GetComponent<Piece>();
+				pieceObject.transform.parent = pivot.transform;
+				pieceObject.transform.localPosition = new Vector3 (0, 0, pieceZPosition);
+				pieceObject.transform.localScale = new Vector3(sizeOfPicture.x*scale.x,sizeOfPicture.y*scale.y,1);
+				pieceObject.id = id;
+				pieceObject.puzzlePivot = this;
+
+				pieceObject.PieceRenderer.material.SetTextureScale ("_MainTex",scale);
+				pieceObject.PieceRenderer.material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
+
+				pieceObject.PieceRendererBack.material.SetTextureScale ("_MainTex",scale);
+				pieceObject.PieceRendererBack.material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
+
+				pieceObject.CollectableLayerRenderer.gameObject.SetActive(false);
+				pieces.Add (pieceObject);
+
+				pieceObject.outline = PieceOutlineHelper.GenerateMeshOutline(pieceObject.gameObject);
+				pieceObject.outline.SetActive (false);
+
+				pieceZPosition += -0.1f;
+			}
+		}
+		SetTextureForPieces (texture);
+
+		SetupGoalKeypieceDictionary ();
+		yield break;
+	}
+
+	public void SetTextureForPieces(Texture texture, bool isFront = true) {
+		foreach(var pieceObject in pieces) {
+			if (isFront) {
+				pieceObject.PieceRenderer.material.SetTexture ("_MainTex", texture);
+			} else {
+				pieceObject.PieceRendererBack.material.SetTexture ("_MainTex", texture);
+			}
+		}
 	}
 
 	internal void AssignToSnapablePoint(Piece piece, SnapablePoint snapablePoint) {
@@ -73,7 +130,7 @@ public abstract class PuzzlePivot {
 		gameboard.CheckForWin ();
 	}
 
-	internal void ScramblePiecePosition() {
+	public void ScramblePiecePosition() {
 		foreach (var piece in pieces) {
 			var x = sizeOfPicture.x * 0.5f;
 			var y = sizeOfPicture.y * 0.5f;
