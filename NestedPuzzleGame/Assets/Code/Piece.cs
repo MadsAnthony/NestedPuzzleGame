@@ -89,7 +89,11 @@ public class Piece : MonoBehaviour {
 
 	public void Rotate(Vector3 endRotation, float sec,  Action callback) {
 		if (isRotating) return;
-		StartCoroutine(RotateCr(gameObject, endRotation, sec, callback));
+		if (sec >= 0.01f) {
+			StartCoroutine(RotateCr(gameObject, endRotation, sec, callback));
+		} else {
+			callback ();
+		}
 	}
 
 	private bool isRotating;
