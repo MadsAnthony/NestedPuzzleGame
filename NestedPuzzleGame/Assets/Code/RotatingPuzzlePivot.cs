@@ -27,7 +27,29 @@ public class RotatingPuzzlePivot : PuzzlePivot {
 
 	private List<Piece> aPieces = new List<Piece>();
 	private List<Piece> bPieces = new List<Piece>();
+
+	private List<GameObject> piecePivots = new List<GameObject>();
+
 	internal override IEnumerator SpawnPieces(Texture texture) {
+		yield return internalPuzzlePivot.SpawnPieces (texture);
+		internalPuzzlePivot.ScramblePiecePosition ();
+		yield return null;
+
+		// Create new piecePivots and assign pieces
+		var nPiecesInPivot = internalPuzzlePivot.pieces.Count / 2;
+		for (int i = 0; i < 2; i++) {
+			var piecePivot = new GameObject ();
+			piecePivot.transform.parent = pivot.transform;
+			piecePivot.transform.localPosition = new Vector3 (0,0,-1);
+			for (int j = 0; j <nPiecesInPivot; j++) {
+				internalPuzzlePivot.pieces [i*nPiecesInPivot+j].transform.parent = piecePivot.transform;
+			}
+			piecePivots.Add (piecePivot);
+		}
+
+		// Side A
+		subPuzzle.SetBackgroundColor(0);
+		HideAllPiecePivots();
 		// Take picture of background Quad
 		var cachePosA = subPuzzle.BackgroundQuad.transform.localPosition;
 		subPuzzle.BackgroundQuad.transform.localPosition = new Vector3 (0, 0, 0);
@@ -37,28 +59,14 @@ public class RotatingPuzzlePivot : PuzzlePivot {
 		yield return null;
 
 		// Take picture of A side
-		yield return internalPuzzlePivot.SpawnPieces (texture);
-		internalPuzzlePivot.ScramblePiecePosition ();
-		internalPuzzlePivot.pieces[0].gameObject.SetActive (false);
-		internalPuzzlePivot.pieces[1].gameObject.SetActive (false);
-		aPieces.Add(internalPuzzlePivot.pieces[2]);
-		aPieces.Add(internalPuzzlePivot.pieces[3]);
+		HideAllPiecePivots();
+		piecePivots [1].SetActive (true);
 		yield return null;
-		var snapShot = subPuzzle.TakeSnapShot ();
+		var aSidePicture = subPuzzle.TakeSnapShot ();
 
-		// Take picture of B side
+		// Side B
 		subPuzzle.SetBackgroundColor(1);
-		internalPuzzlePivot.pieces[0].gameObject.SetActive (true);
-		internalPuzzlePivot.pieces[1].gameObject.SetActive (true);
-		internalPuzzlePivot.pieces[2].gameObject.SetActive (false);
-		internalPuzzlePivot.pieces[3].gameObject.SetActive (false);
-		bPieces.Add(internalPuzzlePivot.pieces[0]);
-		bPieces.Add(internalPuzzlePivot.pieces[1]);
-		yield return null;
-		var bSidePicture = subPuzzle.TakeSnapShot ();
-		
-		internalPuzzlePivot.pieces[0].gameObject.SetActive (false);
-		internalPuzzlePivot.pieces[1].gameObject.SetActive (false);
+		HideAllPiecePivots();
 		// Take picture of background Quad
 		var cachePosB = subPuzzle.BackgroundQuad.transform.localPosition;
 		subPuzzle.BackgroundQuad.transform.localPosition = new Vector3 (0, 0, 0);
@@ -66,32 +74,36 @@ public class RotatingPuzzlePivot : PuzzlePivot {
 		bSideNoPiecesTexture = subPuzzle.TakeSnapShot ();
 		subPuzzle.BackgroundQuad.transform.localPosition = cachePosB;
 		yield return null;
+
+		// Take picture of B side
+		HideAllPiecePivots();
+		piecePivots [0].SetActive (true);
+		yield return null;
+		var bSidePicture = subPuzzle.TakeSnapShot ();
 		
-		// Set pictures for A and B side
-		yield return base.SpawnPieces (snapShot);
+		// Spawn actual pieces and set pictures for A and B side
+		yield return base.SpawnPieces (null);
+		SetTextureForPieces (aSidePicture, true);
 		SetTextureForPieces (bSidePicture, false);
 
 		internalPuzzlePivot.pivot.gameObject.transform.localPosition = new Vector3 (0,0,-5);
-		internalPuzzlePivot.pieces[0].gameObject.SetActive (false);
-		internalPuzzlePivot.pieces[1].gameObject.SetActive (false);
-		internalPuzzlePivot.pieces[2].gameObject.SetActive (false);
-		internalPuzzlePivot.pieces[3].gameObject.SetActive (false);
+		HideAllPiecePivots();
 
 
-
-		int i = 0;
+		// Setup KeyPieceDictionary for A and B side
+		int k = 0;
 		foreach (var snapablePoint in snapablePoints) {
-			pieces[i].transform.localPosition = new Vector3(snapablePoint.position.x,snapablePoint.position.y,pieces[i].transform.localPosition.z);
-			snapablePoint.piece = pieces[i];
-			i++;
+			pieces[k].transform.localPosition = new Vector3(snapablePoint.position.x,snapablePoint.position.y,pieces[k].transform.localPosition.z);
+			snapablePoint.piece = pieces[k];
+			k++;
 		}
 
 		aGoalKeyPieceDictionary = KeyPieceDictionary.SetupKeyPieceDictionary (this, pieces);
 		
-		i = 0;
+		k = 0;
 		foreach (var snapablePoint in snapablePoints) {
-			pieces[i].transform.localEulerAngles += new Vector3(0,180,0);
-			i++;
+			pieces[k].transform.localEulerAngles += new Vector3(0,180,0);
+			k++;
 		}
 		
 		bGoalKeyPieceDictionary = KeyPieceDictionary.SetupKeyPieceDictionary (this, pieces);
@@ -99,7 +111,12 @@ public class RotatingPuzzlePivot : PuzzlePivot {
 		foreach (var snapablePoint in snapablePoints) {
 			snapablePoint.piece = null;
 		}
-		
+	}
+
+	private void HideAllPiecePivots() {
+		foreach(var piecePivot in piecePivots) {
+			piecePivot.SetActive (false);
+		}
 	}
 
 	private KeyPieceDictionary aGoalKeyPieceDictionary;
@@ -122,18 +139,14 @@ public class RotatingPuzzlePivot : PuzzlePivot {
 	private bool bSideComplete = false;
 	internal override bool CheckForWin() {
 		if (aGoalKeyPieceDictionary.IsPiecesPlacedCorrectly(this)) {
-			foreach (var aPiece in aPieces) {
-				aPiece.gameObject.SetActive (true);
-			}
+			piecePivots [1].SetActive (true);
 			
 			SetTextureForPieces (aSideNoPiecesTexture);
 			aSideComplete = true;
 		}
 
 		if (bGoalKeyPieceDictionary.IsPiecesPlacedCorrectly(this)) {
-			foreach (var bPiece in bPieces) {
-				bPiece.gameObject.SetActive (true);
-			}
+			piecePivots [0].SetActive (true);
 			
 			SetTextureForPieces (bSideNoPiecesTexture, false);
 			bSideComplete = true;

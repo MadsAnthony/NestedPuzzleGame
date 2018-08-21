@@ -107,7 +107,9 @@ public abstract class PuzzlePivot {
 				pieceZPosition += -0.1f;
 			}
 		}
-		SetTextureForPieces (texture);
+		if (texture != null) {
+			SetTextureForPieces (texture);
+		}
 
 		SetupGoalKeypieceDictionary ();
 		yield break;

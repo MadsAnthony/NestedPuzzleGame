@@ -82,6 +82,7 @@ public class GameBoard : MonoBehaviour {
 		goalPictureObject.SetActive (false);
 
 		if (level.isMasterPuzzle) {
+			yield return null;
 			activeSubPuzzle.SetupMasterPuzzle();
 		}
 
