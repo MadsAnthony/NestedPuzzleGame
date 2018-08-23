@@ -28,102 +28,123 @@ public class RotatingPuzzlePivot : PuzzlePivot {
 	private List<Piece> aPieces = new List<Piece>();
 	private List<Piece> bPieces = new List<Piece>();
 
-	private List<GameObject> piecePivots = new List<GameObject>();
+	private class PiecePivot {
+		public GameObject pivot;
+		public Texture2D picture;
+		public Texture2D pictureNoPieces;
+		public KeyPieceDictionary goalKeyPieceDictionary;
+	}
+
+	private List<PiecePivot> piecePivots = new List<PiecePivot>();
 
 	internal override IEnumerator SpawnPieces(Texture texture) {
 		yield return internalPuzzlePivot.SpawnPieces (texture);
 		internalPuzzlePivot.ScramblePiecePosition ();
 		yield return null;
 
-		// Create new piecePivots and assign pieces
-		var nPiecesInPivot = internalPuzzlePivot.pieces.Count / 2;
-		for (int i = 0; i < 2; i++) {
-			var piecePivot = new GameObject ();
-			piecePivot.transform.parent = pivot.transform;
-			piecePivot.transform.localPosition = new Vector3 (0,0,-1);
-			for (int j = 0; j <nPiecesInPivot; j++) {
-				internalPuzzlePivot.pieces [i*nPiecesInPivot+j].transform.parent = piecePivot.transform;
-			}
-			piecePivots.Add (piecePivot);
+		piecePivots = CreatePiecePivotList();
+
+		yield return TakeSnapShotsOfPiecePivots (piecePivots);
+
+		yield return base.SpawnPieces (null);
+		for (int i = 0; i<piecePivots.Count; i++) {
+			SetTextureForPieces (piecePivots[i].picture, i<1);
 		}
 
-		// Side A
-		subPuzzle.SetBackgroundColor(0);
-		HideAllPiecePivots();
-		// Take picture of background Quad
-		var cachePosA = subPuzzle.BackgroundQuad.transform.localPosition;
-		subPuzzle.BackgroundQuad.transform.localPosition = new Vector3 (0, 0, 0);
-		yield return null;
-		aSideNoPiecesTexture = subPuzzle.TakeSnapShot ();
-		subPuzzle.BackgroundQuad.transform.localPosition = cachePosA;
-		yield return null;
-
-		// Take picture of A side
-		HideAllPiecePivots();
-		piecePivots [1].SetActive (true);
-		yield return null;
-		var aSidePicture = subPuzzle.TakeSnapShot ();
-
-		// Side B
-		subPuzzle.SetBackgroundColor(1);
-		HideAllPiecePivots();
-		// Take picture of background Quad
-		var cachePosB = subPuzzle.BackgroundQuad.transform.localPosition;
-		subPuzzle.BackgroundQuad.transform.localPosition = new Vector3 (0, 0, 0);
-		yield return null;
-		bSideNoPiecesTexture = subPuzzle.TakeSnapShot ();
-		subPuzzle.BackgroundQuad.transform.localPosition = cachePosB;
-		yield return null;
-
-		// Take picture of B side
-		HideAllPiecePivots();
-		piecePivots [0].SetActive (true);
-		yield return null;
-		var bSidePicture = subPuzzle.TakeSnapShot ();
-		
-		// Spawn actual pieces and set pictures for A and B side
-		yield return base.SpawnPieces (null);
-		SetTextureForPieces (aSidePicture, true);
-		SetTextureForPieces (bSidePicture, false);
+		for (int i = 0; i < piecePivots.Count; i++) {
+			piecePivots[i].goalKeyPieceDictionary = SetupKeyPieceDictionary (new Vector3 (0, 180 * i, 0));
+		}
 
 		internalPuzzlePivot.pivot.gameObject.transform.localPosition = new Vector3 (0,0,-5);
 		HideAllPiecePivots();
-
-
-		// Setup KeyPieceDictionary for A and B side
-		int k = 0;
-		foreach (var snapablePoint in snapablePoints) {
-			pieces[k].transform.localPosition = new Vector3(snapablePoint.position.x,snapablePoint.position.y,pieces[k].transform.localPosition.z);
-			snapablePoint.piece = pieces[k];
-			k++;
-		}
-
-		aGoalKeyPieceDictionary = KeyPieceDictionary.SetupKeyPieceDictionary (this, pieces);
-		
-		k = 0;
-		foreach (var snapablePoint in snapablePoints) {
-			pieces[k].transform.localEulerAngles += new Vector3(0,180,0);
-			k++;
-		}
-		
-		bGoalKeyPieceDictionary = KeyPieceDictionary.SetupKeyPieceDictionary (this, pieces);
-
-		foreach (var snapablePoint in snapablePoints) {
-			snapablePoint.piece = null;
-		}
 	}
 
 	private void HideAllPiecePivots() {
 		foreach(var piecePivot in piecePivots) {
-			piecePivot.SetActive (false);
+			piecePivot.pivot.SetActive (false);
 		}
+	}
+
+	private List<PiecePivot> CreatePiecePivotList() {
+		var piecePivots = new List<PiecePivot> ();
+		var nPiecesInPivot = internalPuzzlePivot.pieces.Count / 2;
+		for (int i = 0; i < 2; i++) {
+			var piecePivot = new PiecePivot ();
+			var piecePivotGameObject = new GameObject ();
+			piecePivot.pivot = piecePivotGameObject;
+
+			piecePivotGameObject.transform.parent = pivot.transform;
+			piecePivotGameObject.transform.localPosition = new Vector3 (0,0,-1);
+			for (int j = 0; j <nPiecesInPivot; j++) {
+				internalPuzzlePivot.pieces [i*nPiecesInPivot+j].transform.parent = piecePivotGameObject.transform;
+			}
+			piecePivots.Add (piecePivot);
+		}
+		return piecePivots;
+	}
+
+	private IEnumerator TakeSnapShotsOfPiecePivots(List<PiecePivot> piecePivots) {
+		for (int i = 0; i<piecePivots.Count; i++) {
+			yield return TakeSnapShotOfSide(i, piecePivots[i]);
+		}
+	}
+
+	private IEnumerator TakeSnapShotOfBackgroundQuad(System.Action<Texture2D> snapShotAction) {
+		var cachePosA = subPuzzle.BackgroundQuad.transform.localPosition;
+		subPuzzle.BackgroundQuad.transform.localPosition = new Vector3 (0, 0, 0);
+		yield return null;
+		var sideNoPiecesTexture = subPuzzle.TakeSnapShot ();
+		subPuzzle.BackgroundQuad.transform.localPosition = cachePosA;
+		yield return null;
+		snapShotAction(sideNoPiecesTexture);
+	}
+
+	private IEnumerator TakeSnapShotOfSide(int sideIndex, PiecePivot piecePivot) {
+		subPuzzle.SetBackgroundColor(sideIndex);
+		HideAllPiecePivots();
+		// Take picture of background Quad
+		Texture2D sideNoPiecesTexture = null;
+		yield return TakeSnapShotOfBackgroundQuad ((picture) => sideNoPiecesTexture = picture);
+
+		// Take picture of a side
+		HideAllPiecePivots();
+		piecePivots [sideIndex].pivot.SetActive (true);
+		yield return null;
+		var sidePicture = subPuzzle.TakeSnapShot ();
+
+		piecePivot.picture = sidePicture;
+		piecePivot.pictureNoPieces = sideNoPiecesTexture;
+	}
+
+	private KeyPieceDictionary SetupKeyPieceDictionary(Vector3 angle) {
+		int k = 0;
+		foreach (var snapablePoint in snapablePoints) {
+			pieces[k].transform.localPosition = new Vector3(snapablePoint.position.x,snapablePoint.position.y,pieces[k].transform.localPosition.z);
+			pieces[k].transform.localEulerAngles = angle;
+			snapablePoint.piece = pieces[k];
+			k++;
+		}
+		var goalKeyPieceDictionary = KeyPieceDictionary.SetupKeyPieceDictionary (this, pieces);
+
+		foreach (var snapablePoint in snapablePoints) {
+			snapablePoint.piece = null;
+		}
+
+		return goalKeyPieceDictionary;
 	}
 
 	private KeyPieceDictionary aGoalKeyPieceDictionary;
 	private KeyPieceDictionary bGoalKeyPieceDictionary;
 
 	public override void PieceClicked(Piece piece, Vector3 mousePosInWorld) {
-		if (aSideComplete && bSideComplete) return;
+		bool allPiecePivotsCompleted = true;
+		foreach (var piecePivot in piecePivots) {
+			if (!piecePivot.pivot.activeSelf) {
+				allPiecePivotsCompleted = false;
+			}
+		}
+		if (allPiecePivotsCompleted) return;
+
 		var currentSnapablePoint = SnapablePoint.GetSnapablePointWithPieceId (this, piece.id);
 		var snapablePoints = new List<SnapablePoint> ();
 		snapablePoints.Add (currentSnapablePoint);
@@ -135,21 +156,14 @@ public class RotatingPuzzlePivot : PuzzlePivot {
 		}
 	}
 
-	private bool aSideComplete = false;
-	private bool bSideComplete = false;
 	internal override bool CheckForWin() {
-		if (aGoalKeyPieceDictionary.IsPiecesPlacedCorrectly(this)) {
-			piecePivots [1].SetActive (true);
-			
-			SetTextureForPieces (aSideNoPiecesTexture);
-			aSideComplete = true;
-		}
-
-		if (bGoalKeyPieceDictionary.IsPiecesPlacedCorrectly(this)) {
-			piecePivots [0].SetActive (true);
-			
-			SetTextureForPieces (bSideNoPiecesTexture, false);
-			bSideComplete = true;
+		int i = 0;
+		foreach (var piecePivot in piecePivots) {
+			if (piecePivot.goalKeyPieceDictionary.IsPiecesPlacedCorrectly (this)) {
+				piecePivot.pivot.SetActive (true);
+				SetTextureForPieces (piecePivot.pictureNoPieces, i<1);
+			}
+			i++;
 		}
 		return internalPuzzlePivot.CheckForWin();
 	}
