@@ -33,6 +33,7 @@ public class RotatingPuzzlePivot : PuzzlePivot {
 		public Texture2D picture;
 		public Texture2D pictureNoPieces;
 		public KeyPieceDictionary goalKeyPieceDictionary;
+		public int pieceRendererIndex;
 	}
 
 	private List<PiecePivot> piecePivots = new List<PiecePivot>();
@@ -47,8 +48,14 @@ public class RotatingPuzzlePivot : PuzzlePivot {
 		yield return TakeSnapShotsOfPiecePivots (piecePivots);
 
 		yield return base.SpawnPieces (null);
+		for (int i = 1; i<piecePivots.Count; i++) {
+			piecePivots[i].pieceRendererIndex = SpawnExtraPieceRenderer ((pieceRenderer) => {
+				pieceRenderer.transform.localEulerAngles = new Vector3(0,180,0);
+				pieceRenderer.transform.localPosition = new Vector3(0,0,0.2f);
+			});
+		}
 		for (int i = 0; i<piecePivots.Count; i++) {
-			SetTextureForPieces (piecePivots[i].picture, i<1);
+			SetTextureForPiecesRenderer (piecePivots[i].picture, piecePivots[i].pieceRendererIndex);
 		}
 
 		for (int i = 0; i < piecePivots.Count; i++) {
@@ -161,7 +168,7 @@ public class RotatingPuzzlePivot : PuzzlePivot {
 		foreach (var piecePivot in piecePivots) {
 			if (piecePivot.goalKeyPieceDictionary.IsPiecesPlacedCorrectly (this)) {
 				piecePivot.pivot.SetActive (true);
-				SetTextureForPieces (piecePivot.pictureNoPieces, i<1);
+				SetTextureForPiecesRenderer (piecePivot.pictureNoPieces, piecePivots[i].pieceRendererIndex);
 			}
 			i++;
 		}

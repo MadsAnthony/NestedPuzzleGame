@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class Piece : MonoBehaviour {
 	[SerializeField] private MeshRenderer pieceRenderer;
-	[SerializeField] private MeshRenderer pieceRendererBack;
 	[SerializeField] private MeshRenderer collectableLayerRenderer;
 	[SerializeField] private GameObject backdrop;
 	[SerializeField] private AnimationCurve pieceJiggleCurve;
@@ -15,12 +14,11 @@ public class Piece : MonoBehaviour {
 	public GameObject Backdrop {
 		get { return backdrop; }
 	}
+
 	public MeshRenderer PieceRenderer {
 		get { return pieceRenderer; }
 	}
-	public MeshRenderer PieceRendererBack {
-		get { return pieceRendererBack; }
-	}
+
 	public MeshRenderer CollectableLayerRenderer {
 		get { return collectableLayerRenderer; }
 	}
@@ -29,6 +27,8 @@ public class Piece : MonoBehaviour {
 		get { return id+Mathf.RoundToInt(transform.localRotation.y).ToString();}
 	}
 
+	public List<GameObject> PieceRendererList { get; set; }
+
 	public string id;
 
 	public PuzzlePivot puzzlePivot;
@@ -36,6 +36,16 @@ public class Piece : MonoBehaviour {
 	public void Jiggle() {
 		if (isJiggling) return;
 		StartCoroutine(JiggleCr (gameObject, new Vector3 (0, 0, 45), 0.2f));
+	}
+
+	public GameObject SpawnExtraRenderer() {
+		var originalPieceRenderer = PieceRendererList [0];
+		var pieceRenderer = GameObject.Instantiate (originalPieceRenderer);
+		pieceRenderer.transform.parent = originalPieceRenderer.transform.parent;
+		pieceRenderer.transform.localScale = originalPieceRenderer.transform.localScale;
+		pieceRenderer.transform.localPosition = originalPieceRenderer.transform.localPosition;
+		PieceRendererList.Add (pieceRenderer);
+		return pieceRenderer;
 	}
 
 	private bool isJiggling;

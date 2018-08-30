@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
 
 public abstract class PuzzlePivot {
 	public GameBoard gameboard;
@@ -94,9 +95,8 @@ public abstract class PuzzlePivot {
 
 				pieceObject.PieceRenderer.material.SetTextureScale ("_MainTex",scale);
 				pieceObject.PieceRenderer.material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
-
-				pieceObject.PieceRendererBack.material.SetTextureScale ("_MainTex",scale);
-				pieceObject.PieceRendererBack.material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
+				pieceObject.PieceRendererList = new List<GameObject> ();
+				pieceObject.PieceRendererList.Add (pieceObject.PieceRenderer.gameObject);
 
 				pieceObject.CollectableLayerRenderer.gameObject.SetActive(false);
 				pieces.Add (pieceObject);
@@ -108,21 +108,27 @@ public abstract class PuzzlePivot {
 			}
 		}
 		if (texture != null) {
-			SetTextureForPieces (texture);
+			SetTextureForPiecesRenderer (texture);
 		}
 
 		SetupGoalKeypieceDictionary ();
 		yield break;
 	}
 
-	public void SetTextureForPieces(Texture texture, bool isFront = true) {
+	public void SetTextureForPiecesRenderer(Texture texture, int index = 0) {
 		foreach(var pieceObject in pieces) {
-			if (isFront) {
-				pieceObject.PieceRenderer.material.SetTexture ("_MainTex", texture);
-			} else {
-				pieceObject.PieceRendererBack.material.SetTexture ("_MainTex", texture);
+			pieceObject.PieceRendererList [index].GetComponent<MeshRenderer>().material.SetTexture ("_MainTex", texture);
+		}
+	}
+
+	public int SpawnExtraPieceRenderer(Action<GameObject> modifyPieceRenderer = null) {
+		foreach (var piece in pieces) {
+			var newRenderer = piece.SpawnExtraRenderer ();
+			if (modifyPieceRenderer != null) {
+				modifyPieceRenderer (newRenderer);
 			}
 		}
+		return pieces [0].PieceRendererList.Count ()-1;
 	}
 
 	internal void AssignToSnapablePoint(Piece piece, SnapablePoint snapablePoint) {
