@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections;
 
 public class LevelPortrait : MonoBehaviour {
 	[SerializeField] private MeshRenderer frontPicture;
@@ -26,6 +27,7 @@ public class LevelPortrait : MonoBehaviour {
 			masterPuzzlePivot.transform.localPosition = new Vector3(0,0.3f+pictureSize.y/2f,0);
 			masterPuzzleAmountText.text = LevelSelectView.amountOfMasterPieces + "/"+"10";
 			picturePanel.SetActive(false);
+			StartCoroutine (SetMasterPuzzleTexture());
 		} else {
 			masterPuzzlePivot.SetActive(false);
 			picturePanel.SetActive(true);
@@ -49,6 +51,33 @@ public class LevelPortrait : MonoBehaviour {
 				collectableBack.material.color = Color.white;
 			}
 		}
+	}
+
+
+	private IEnumerator SetMasterPuzzleTexture() {
+		var key = Director.Instance.WorldIndex.ToString () + "_0";
+		if (!Director.Instance.MasterPuzzleImages.ContainsKey (key)) {
+			SceneManager.LoadScene ("LevelScene", LoadSceneMode.Additive);
+			var currentLevelIndex = Director.Instance.LevelIndex;
+			Director.Instance.LevelIndex = 0;
+			yield return null;
+			var camera = GameObject.Find ("CameraPivot");
+			camera.SetActive (false);
+			var gameUI = GameObject.Find ("GameUI");
+			gameUI.SetActive (false);
+			var gameBoard = GameObject.Find ("GameBoard").GetComponent<GameBoard> ();
+			gameBoard.MoveEntireScene (new Vector3 (1000, 1000, 0));
+			for (int i = 0; i < 10; i++) {
+				yield return null;
+			}
+			var levelTexture = gameBoard.InitialSubPuzzle.TakeSnapShot ();
+			yield return SceneManager.UnloadSceneAsync ("LevelScene");
+			Director.Instance.LevelIndex = currentLevelIndex;
+
+			Director.Instance.MasterPuzzleImages.Add (key, levelTexture);
+		}
+		Texture2D goalTexture = Director.Instance.MasterPuzzleImages [key];
+		frontPicture.material.mainTexture = goalTexture;
 	}
 
 	public void PlayLevel() {

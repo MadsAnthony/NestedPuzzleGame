@@ -7,11 +7,13 @@ using UnityEngine.SceneManagement;
 using Opencoding.CommandHandlerSystem;
 
 public class GameBoard : MonoBehaviour {
+	[SerializeField] private GameObject gameUI;
 	[SerializeField] public SubPuzzle subPuzzlePrefab;
 	[SerializeField] private AnimationCurve easeInOutCurve;
 	[SerializeField] private GameObject goalPicture;
 	[SerializeField] private GameObject cameraPivot;
 	[SerializeField] private GameObject piece;
+
 
 	public GameObject PiecePrefab { get { return piece; }}
 	private RenderTexture puzzleTexture;
@@ -23,6 +25,7 @@ public class GameBoard : MonoBehaviour {
 	public bool hasCollectedCollectable;
 
 	private LevelAsset level;
+	public SubPuzzle InitialSubPuzzle { get; private set;}
 
 	private int additionalPieces;
 	public Dictionary<string,List<LevelAsset.SubPuzzleNode>> nodeAssetDictionary;
@@ -65,12 +68,12 @@ public class GameBoard : MonoBehaviour {
 			goalPictureObject.GetComponent<MeshRenderer> ().material.SetVector ("_v3", new Vector4 (0, 1, 0, 0));
 		}
 
-		var subPuzzle = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();
-		subPuzzle.transform.parent = transform;
-		subPuzzle.Initialize(this, "0" , 0, pictureSize);
-		subPuzzle.transform.parent = transform;
-		subPuzzle.transform.localPosition = new Vector3 (0, 0, 0);
-		subPuzzle.SpawnSubPuzzle ();
+		InitialSubPuzzle = GameObject.Instantiate (subPuzzlePrefab).GetComponent<SubPuzzle>();
+		InitialSubPuzzle.transform.parent = transform;
+		InitialSubPuzzle.Initialize(this, "0" , 0, pictureSize);
+		InitialSubPuzzle.transform.parent = transform;
+		InitialSubPuzzle.transform.localPosition = new Vector3 (0, 0, 0);
+		InitialSubPuzzle.SpawnSubPuzzle ();
 
 
 		// Wait 3 frames
@@ -78,7 +81,7 @@ public class GameBoard : MonoBehaviour {
 			yield return null;
 		}
 
-		SetActiveSubPuzzle (subPuzzle);
+		SetActiveSubPuzzle (InitialSubPuzzle);
 		goalPictureObject.SetActive (false);
 
 		if (level.isMasterPuzzle) {
@@ -227,6 +230,13 @@ public class GameBoard : MonoBehaviour {
 			gameObject.transform.localScale = (startScale * (1 - t)) + endScale * t;
 			yield return null;
 		}
+	}
+
+	public void MoveEntireScene(Vector3 newPosition) {
+		var addPositon = transform.position - newPosition;
+		cameraPivot.transform.position = newPosition;
+		transform.position += addPositon;
+		gameUI.transform.position = newPosition;
 	}
 }
 

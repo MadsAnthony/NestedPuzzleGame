@@ -12,6 +12,7 @@ public class Director : MonoBehaviour  {
 	private int worldIndex = 0;
 	private int levelIndex = 1;
 	private int prevLevelIndex = 1;
+	public Dictionary<string, Texture2D> MasterPuzzleImages = new Dictionary<string, Texture2D>();
 	public bool IsAlternativeLevel;
 	public LevelExitState levelExitState = LevelExitState.None;
 	public int LevelIndex 
