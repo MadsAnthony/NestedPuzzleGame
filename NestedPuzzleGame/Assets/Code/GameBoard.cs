@@ -25,11 +25,12 @@ public class GameBoard : MonoBehaviour {
 	public bool hasCollectedCollectable;
 
 	private LevelAsset level;
-	public SubPuzzle InitialSubPuzzle { get; private set;}
+	public SubPuzzle InitialSubPuzzle { get; private set; }
 
 	private int additionalPieces;
 	public Dictionary<string,List<LevelAsset.SubPuzzleNode>> nodeAssetDictionary;
 	public LevelAsset levelOverride;
+
 	void Start () {
 		if (Director.Instance.IsAlternativeLevel) {
 			additionalPieces = 1;
@@ -90,6 +91,12 @@ public class GameBoard : MonoBehaviour {
 		}
 
 		cameraPivot.transform.localPosition = new Vector3 (0,0,0);
+
+		if (level.isMasterPuzzle) {
+			yield return null;
+
+			LoadInitialSubPuzzlePiecePositions ();
+		}
 	}
 
 	public void SetActiveSubPuzzle(SubPuzzle newActiveSubPuzzle) {
@@ -125,17 +132,14 @@ public class GameBoard : MonoBehaviour {
 					hit.collider.gameObject.SetActive(false);
 					
 					// Save
-					var tempDict = Director.SaveData.LevelProgress;
-					var id = Director.Instance.WorldIndex.ToString() + "_" + Director.Instance.LevelIndex.ToString() + "_" + Director.Instance.IsAlternativeLevel.ToString();
-					var levelSave = Director.SaveData.GetLevelSaveDataEntry(id);
-					if (levelSave != null && !levelSave.gotCollectable) {
-						if (hasCollectedCollectable){
-							Director.Instance.levelExitState |= LevelExitState.GotCollectable;
-							levelSave.gotCollectable = true;
-						}
-						tempDict[id] = levelSave;
+					string id;
+					var levelSave = Director.SaveData.GetCurrentLevelSaveDataEntry(out id);
+					if (levelSave.completed && hasCollectedCollectable && !levelSave.gotCollectable) {
+						Director.Instance.levelExitState |= LevelExitState.GotCollectable;
+
+						levelSave.gotCollectable = true;
+						Director.SaveData.SaveLevelSaveDataEntry (levelSave,id);
 					}
-					Director.SaveData.LevelProgress = tempDict;
 				}
 			}
 		}
@@ -165,21 +169,18 @@ public class GameBoard : MonoBehaviour {
 					ZoomOut (transform.position+newPos);
 				} else {
 					goalPictureObject.SetActive (true);
-					var tempDict = Director.SaveData.LevelProgress;
-					var id = Director.Instance.WorldIndex.ToString() + "_" +Director.Instance.LevelIndex.ToString() + "_" + Director.Instance.IsAlternativeLevel.ToString();
-					var levelSave = Director.SaveData.GetLevelSaveDataEntry(id);
-					if (levelSave == null) {
+					string id;
+					var levelSave = Director.SaveData.GetCurrentLevelSaveDataEntry(out id);
+					if (!levelSave.completed) {
 						Director.Instance.levelExitState |= LevelExitState.LevelCompleted;
-						tempDict[id] = new LevelSaveData(true, hasCollectedCollectable);
-					} else {
-						if (hasCollectedCollectable && !levelSave.gotCollectable){
-							Director.Instance.levelExitState |= LevelExitState.GotCollectable;
-							levelSave.gotCollectable = true;
-						}
-						tempDict[id] = levelSave;
 					}
+					levelSave.completed = true;
+					if (hasCollectedCollectable && !levelSave.gotCollectable){
+						Director.Instance.levelExitState |= LevelExitState.GotCollectable;
+						levelSave.gotCollectable = true;
+					}
+					Director.SaveData.SaveLevelSaveDataEntry (levelSave, id);
 
-					Director.SaveData.LevelProgress = tempDict;
 					Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("LevelSelectScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
 				}
 				activeSubPuzzle = activeSubPuzzle.parentSubPuzzle;
@@ -238,6 +239,48 @@ public class GameBoard : MonoBehaviour {
 		transform.position += addPositon;
 		gameUI.transform.position = newPosition;
 	}
+
+	private void SaveInitialSubPuzzlePiecePositions() {
+		Dictionary<string, LevelSaveData.PieceStateData> piecePositions = new Dictionary<string, LevelSaveData.PieceStateData> ();
+		foreach (var piece in InitialSubPuzzle.ActivePuzzlePivot.pieces) {
+			var pieceStateData = new LevelSaveData.PieceStateData ();
+			pieceStateData.localPosition = piece.transform.localPosition;
+			piecePositions.Add (piece.id, pieceStateData);
+		}
+
+		string id;
+		var levelSave = Director.SaveData.GetCurrentLevelSaveDataEntry(out id);
+		levelSave.SetPiecePositions (piecePositions);
+		Director.SaveData.SaveLevelSaveDataEntry (levelSave, id);
+	}
+
+	private void LoadInitialSubPuzzlePiecePositions() {
+		string id;
+		var levelSave = Director.SaveData.GetCurrentLevelSaveDataEntry(out id);
+		var piecePositions = levelSave.GetPiecePositions ();
+		if (piecePositions == null) return;
+		foreach (var piece in InitialSubPuzzle.ActivePuzzlePivot.pieces) {
+			if (!piece.gameObject.activeSelf) continue;
+			var pieceStateDate = UnityEngine.JsonUtility.FromJson<LevelSaveData.PieceStateData> (MiniJSON.Json.Serialize (piecePositions [piece.id]));
+			piece.transform.localPosition = pieceStateDate.localPosition;
+			((JigsawPuzzlePivot)(InitialSubPuzzle.ActivePuzzlePivot)).AssignToClosestSnapablePoint (piece);
+		}
+	}
+
+	private void OnDestroy() {
+		if (level.isMasterPuzzle) {
+			SaveInitialSubPuzzlePiecePositions ();
+
+			var key = Director.Instance.WorldIndex.ToString () + "_0";
+			var levelTexture = InitialSubPuzzle.TakeSnapShot ();
+			if (Director.Instance.MasterPuzzleImages.ContainsKey (key)) {
+				Director.Instance.MasterPuzzleImages [key] = levelTexture;
+			} else {
+				Director.Instance.MasterPuzzleImages.Add (key, levelTexture);
+			}
+		}
+	}
+
 }
 
 [Flags]

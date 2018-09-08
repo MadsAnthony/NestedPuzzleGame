@@ -62,6 +62,13 @@ public class JigsawPuzzlePivot : PuzzlePivot {
 		draggablePiece = null;
 	}
 
+	public void AssignToClosestSnapablePoint(Piece piece) {
+		var snapablePoint = GetPointWithinRadius (piece.transform.localPosition, 0.3f);
+		if (snapablePoint != null && snapablePoint.piece == null) {
+			AssignToSnapablePoint (piece, snapablePoint);
+		}
+	}
+
 	public override void CustomUpdate() {
 		if (draggablePiece != null) {
 			var mousePos = Camera.main.ScreenToWorldPoint (Input.mousePosition);

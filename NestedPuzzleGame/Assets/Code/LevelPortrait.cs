@@ -27,7 +27,13 @@ public class LevelPortrait : MonoBehaviour {
 			masterPuzzlePivot.transform.localPosition = new Vector3(0,0.3f+pictureSize.y/2f,0);
 			masterPuzzleAmountText.text = LevelSelectView.amountOfMasterPieces + "/"+"10";
 			picturePanel.SetActive(false);
-			StartCoroutine (SetMasterPuzzleTexture());
+			var key = Director.Instance.WorldIndex.ToString () + "_0";
+			if (Director.Instance.MasterPuzzleImages.ContainsKey (key)) {
+				Texture2D goalTexture = Director.Instance.MasterPuzzleImages [key];
+				frontPicture.material.mainTexture = goalTexture;
+			} else {
+				SetMasterPuzzleTexture ();
+			}
 		} else {
 			masterPuzzlePivot.SetActive(false);
 			picturePanel.SetActive(true);
@@ -39,13 +45,13 @@ public class LevelPortrait : MonoBehaviour {
 		var levelSaveAlternative = Director.SaveData.GetLevelSaveDataEntry(Director.Instance.WorldIndex.ToString() + "_" + levelIndex.ToString() + "_" + true.ToString());
 		collectableNormal.material.color = Color.black;
 		collectableBack.material.color = Color.black;
-		if (levelSaveNormal != null) {
+		if (levelSaveNormal.completed) {
 			frontPicture.material.mainTexture = level.picture;
 			if (levelSaveNormal.gotCollectable) {
 				collectableNormal.material.color = Color.white;
 			}
 		}
-		if (levelSaveAlternative != null) {
+		if (levelSaveAlternative.completed) {
 			backPicture.material.mainTexture = level.picture;
 			if (levelSaveAlternative.gotCollectable) {
 				collectableBack.material.color = Color.white;
@@ -53,29 +59,27 @@ public class LevelPortrait : MonoBehaviour {
 		}
 	}
 
+	public void SetMasterPuzzleTexture() {
+		StartCoroutine (SetMasterPuzzleTextureCr());
+	}
 
-	private IEnumerator SetMasterPuzzleTexture() {
+	private IEnumerator SetMasterPuzzleTextureCr() {
 		var key = Director.Instance.WorldIndex.ToString () + "_0";
-		if (!Director.Instance.MasterPuzzleImages.ContainsKey (key)) {
-			SceneManager.LoadScene ("LevelScene", LoadSceneMode.Additive);
-			var currentLevelIndex = Director.Instance.LevelIndex;
-			Director.Instance.LevelIndex = 0;
+		SceneManager.LoadScene ("LevelScene", LoadSceneMode.Additive);
+		var currentLevelIndex = Director.Instance.LevelIndex;
+		Director.Instance.LevelIndex = 0;
+		yield return null;
+		var camera = GameObject.Find ("CameraPivot");
+		camera.SetActive (false);
+		var gameUI = GameObject.Find ("GameUI");
+		gameUI.SetActive (false);
+		var gameBoard = GameObject.Find ("GameBoard").GetComponent<GameBoard> ();
+		gameBoard.MoveEntireScene (new Vector3 (1000, 1000, 0));
+		for (int i = 0; i < 10; i++) {
 			yield return null;
-			var camera = GameObject.Find ("CameraPivot");
-			camera.SetActive (false);
-			var gameUI = GameObject.Find ("GameUI");
-			gameUI.SetActive (false);
-			var gameBoard = GameObject.Find ("GameBoard").GetComponent<GameBoard> ();
-			gameBoard.MoveEntireScene (new Vector3 (1000, 1000, 0));
-			for (int i = 0; i < 10; i++) {
-				yield return null;
-			}
-			var levelTexture = gameBoard.InitialSubPuzzle.TakeSnapShot ();
-			yield return SceneManager.UnloadSceneAsync ("LevelScene");
-			Director.Instance.LevelIndex = currentLevelIndex;
-
-			Director.Instance.MasterPuzzleImages.Add (key, levelTexture);
 		}
+		yield return SceneManager.UnloadSceneAsync ("LevelScene");
+		Director.Instance.LevelIndex = currentLevelIndex;
 		Texture2D goalTexture = Director.Instance.MasterPuzzleImages [key];
 		frontPicture.material.mainTexture = goalTexture;
 	}

@@ -90,6 +90,9 @@ public class LevelSelectView : MonoBehaviour {
 				yield return new WaitForSeconds(1);
 				MoveRight();
 			}
+			if ((Director.Instance.levelExitState & LevelExitState.GotCollectable) != 0) {
+				listOfPortraits [0].SetMasterPuzzleTexture ();
+			}
 		}
 		
 
