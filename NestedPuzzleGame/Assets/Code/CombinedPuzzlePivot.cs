@@ -28,6 +28,10 @@ public abstract class CombinedPuzzlePivot : PuzzlePivot {
 		}
 	}
 
+	internal virtual PuzzlePivot TopPivot () {
+		return this;
+	}
+
 	internal abstract void SetPiecePivotsExtraRenderer (List<PiecePivot> piecePivots);
 
 	internal abstract void SetPiecePivotsGoal (List<PiecePivot> piecePivots);
@@ -43,12 +47,16 @@ public abstract class CombinedPuzzlePivot : PuzzlePivot {
 
 		yield return TakeSnapShotsOfPiecePivots (piecePivots);
 
-		yield return base.SpawnPieces (null);
+		if (TopPivot () == this) {
+			yield return base.SpawnPieces (null);
+		} else {
+			yield return TopPivot ().SpawnPieces (null);
+		}
 
 		SetPiecePivotsExtraRenderer (piecePivots);
 
 		for (int i = 0; i<piecePivots.Count; i++) {
-			SetTextureForPiecesRenderer (piecePivots[i].picture, piecePivots[i].pieceRendererIndex);
+			TopPivot().SetTextureForPiecesRenderer (piecePivots[i].picture, piecePivots[i].pieceRendererIndex);
 		}
 
 		SetPiecePivotsGoal (piecePivots);
@@ -109,16 +117,18 @@ public abstract class CombinedPuzzlePivot : PuzzlePivot {
 	}
 
 	internal KeyPieceDictionary SetupKeyPieceDictionary(Vector3 angle) {
+		var pivot = TopPivot ();
+
 		int k = 0;
-		foreach (var snapablePoint in snapablePoints) {
-			pieces[k].transform.localPosition = new Vector3(snapablePoint.position.x,snapablePoint.position.y,pieces[k].transform.localPosition.z);
-			pieces[k].transform.localEulerAngles = angle;
-			snapablePoint.piece = pieces[k];
+		foreach (var snapablePoint in pivot.snapablePoints) {
+			pivot.pieces[k].transform.localPosition = new Vector3(snapablePoint.position.x,snapablePoint.position.y,pivot.pieces[k].transform.localPosition.z);
+			pivot.pieces[k].transform.localEulerAngles = angle;
+			snapablePoint.piece = pivot.pieces[k];
 			k++;
 		}
-		var goalKeyPieceDictionary = KeyPieceDictionary.SetupKeyPieceDictionary (this, pieces);
+		var goalKeyPieceDictionary = KeyPieceDictionary.SetupKeyPieceDictionary (pivot, pivot.pieces);
 
-		foreach (var snapablePoint in snapablePoints) {
+		foreach (var snapablePoint in pivot.snapablePoints) {
 			snapablePoint.piece = null;
 		}
 
@@ -140,7 +150,7 @@ public abstract class CombinedPuzzlePivot : PuzzlePivot {
 	internal override bool CheckForWin() {
 		int i = 0;
 		foreach (var piecePivot in piecePivots) {
-			if (piecePivot.goalKeyPieceDictionary.IsPiecesPlacedCorrectly (this)) {
+			if (piecePivot.goalKeyPieceDictionary.IsPiecesPlacedCorrectly (TopPivot())) {
 				piecePivot.pivot.SetActive (true);
 				SetTextureForPiecesRenderer (piecePivot.pictureNoPieces, piecePivots[i].pieceRendererIndex);
 			}
@@ -151,9 +161,17 @@ public abstract class CombinedPuzzlePivot : PuzzlePivot {
 
 	public override void TouchReleased() {
 		internalPuzzlePivot.TouchReleased ();
+
+		if (TopPivot() != this) {
+			TopPivot ().TouchReleased ();
+		}
 	}
 
 	public override void CustomUpdate() {
 		internalPuzzlePivot.CustomUpdate ();
+
+		if (TopPivot() != this) {
+			TopPivot ().CustomUpdate ();
+		}
 	}
 }

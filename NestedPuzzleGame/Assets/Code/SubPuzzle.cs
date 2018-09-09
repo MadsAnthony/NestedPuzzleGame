@@ -229,6 +229,9 @@ public class SubPuzzle : MonoBehaviour {
 		if (type == PuzzlePivotType.rotating) {
 			puzzlePivot = new RotatingPuzzlePivot(pivot, sizeOfPicture, gameBoard, this);
 		}
+		if (type == PuzzlePivotType.time) {
+			puzzlePivot = new TimePuzzlePivot(pivot, sizeOfPicture, gameBoard, this);
+		}
 
 		return puzzlePivot;
 	}
