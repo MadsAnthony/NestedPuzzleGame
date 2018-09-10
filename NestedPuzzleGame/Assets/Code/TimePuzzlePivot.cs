@@ -40,4 +40,17 @@ public class TimePuzzlePivot : CombinedPuzzlePivot {
 	internal override void PiecePivotPieceClicked(Piece piece, Vector3 mousePosInWorld) {
 		
 	}
+
+	private float t;
+	public override void CustomUpdate() {
+		base.CustomUpdate ();
+
+		foreach (var piece in topPuzzlePivot.pieces) {
+			t += Time.deltaTime;
+			var color = piece.PieceRendererList[1].GetComponent<MeshRenderer>().material.color;
+			color.a = (Mathf.Sin(t)+1)/2;
+			piece.PieceRendererList[1].GetComponent<MeshRenderer>().material.color = color;
+		}
+	}
+
 }
