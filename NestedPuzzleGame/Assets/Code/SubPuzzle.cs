@@ -97,12 +97,16 @@ public class SubPuzzle : MonoBehaviour {
 	private IEnumerator SpawnExtraPivots(GameObject pivot, int numberOfPivots) {
 		var newPuzzlePivots = new List<PuzzlePivot>();
 		for (int i = 0; i < numberOfPivots; i++) {
-			var newPuzzlePivot = SpawnExtraPivot(pivot,nodeAsset.puzzlePivots[i].type);
 			var additionalPieces = 0;
 			if (Director.Instance.IsAlternativeLevel) {
 				additionalPieces = 1;
 			}
-			newPuzzlePivot.numberOfPieces = nodeAsset.puzzlePivots[i].numberOfPieces+new Vector2(1,1)*additionalPieces;
+			var numberOfPieces = nodeAsset.puzzlePivots[i].numberOfPieces+new Vector2(1,1)*additionalPieces;
+
+			var newPuzzlePivot = SpawnExtraPivot(pivot,nodeAsset.puzzlePivots[i].type, numberOfPieces);
+
+
+
 			newPuzzlePivot.subPuzzle = this;
 			newPuzzlePivots.Add(newPuzzlePivot);
 
@@ -218,19 +222,19 @@ public class SubPuzzle : MonoBehaviour {
 		}
 	}
 
-	private PuzzlePivot SpawnExtraPivot(GameObject pivot, PuzzlePivotType type) {
+	private PuzzlePivot SpawnExtraPivot(GameObject pivot, PuzzlePivotType type, Vector2 numberOfPieces) {
 		PuzzlePivot puzzlePivot = null;
 		if (type == PuzzlePivotType.jigsaw) {
-			puzzlePivot = new JigsawPuzzlePivot(pivot, sizeOfPicture, gameBoard, this);
+			puzzlePivot = new JigsawPuzzlePivot(pivot, sizeOfPicture, numberOfPieces, gameBoard, this);
 		}
 		if (type == PuzzlePivotType.sliding) {
-			puzzlePivot = new SlidingPuzzlePivot(pivot, sizeOfPicture, gameBoard, this);
+			puzzlePivot = new SlidingPuzzlePivot(pivot, sizeOfPicture, numberOfPieces, gameBoard, this);
 		}
 		if (type == PuzzlePivotType.rotating) {
-			puzzlePivot = new RotatingPuzzlePivot(pivot, sizeOfPicture, gameBoard, this);
+			puzzlePivot = new RotatingPuzzlePivot(pivot, sizeOfPicture, numberOfPieces, gameBoard, this);
 		}
 		if (type == PuzzlePivotType.time) {
-			puzzlePivot = new TimePuzzlePivot(pivot, sizeOfPicture, gameBoard, this);
+			puzzlePivot = new TimePuzzlePivot(pivot, sizeOfPicture, numberOfPieces, gameBoard, this);
 		}
 
 		return puzzlePivot;

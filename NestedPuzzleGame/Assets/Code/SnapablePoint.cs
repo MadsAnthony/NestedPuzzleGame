@@ -5,11 +5,13 @@ using UnityEngine;
 public class SnapablePoint {
 	public readonly string id;
 	public readonly Vector3 position;
+	public readonly Vector3 initialPieceTextureOffset;
 	public Piece piece;
 
-	public SnapablePoint(string id, Vector3 position) {
+	public SnapablePoint(string id, Vector3 position, Vector3 initialPieceTextureOffset) {
 		this.id = id;
 		this.position = position;
+		this.initialPieceTextureOffset = initialPieceTextureOffset;
 	}
 
 	public static SnapablePoint GetSnapablePointFromRelativePosition(PuzzlePivot puzzlePivot, SnapablePoint currentSnapablePoint, Vector2 relativePosition) {

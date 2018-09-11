@@ -15,13 +15,14 @@ public abstract class PuzzlePivot {
 	private Vector2 sizeOfPicture;
 	private KeyPieceDictionary goalKeyPieceDictionary;
 
-	public PuzzlePivot(GameObject parent, Vector2 sizeOfPicture, GameBoard gameboard, SubPuzzle subPuzzle) {
+	public PuzzlePivot(GameObject parent, Vector2 sizeOfPicture, Vector2 numberOfPieces, GameBoard gameboard, SubPuzzle subPuzzle) {
 		pivot = new GameObject();
 		pivot.transform.parent = parent.transform;
 		pivot.transform.localPosition = new Vector3(0,0,0);
 		this.gameboard = gameboard;
 		this.subPuzzle = subPuzzle;
 		this.sizeOfPicture = sizeOfPicture;
+		this.numberOfPieces = numberOfPieces;
 	}
 
 	public SnapablePoint GetPointWithinRadius(Vector3 point, float radius) {
@@ -83,7 +84,7 @@ public abstract class PuzzlePivot {
 
 				var midPointX = sizeOfPicture.x*(scale.x*(i+0.5f)-0.5f);
 				var midPointY = sizeOfPicture.y*(scale.y*(j+0.5f)-0.5f);
-				var newSnapablePoint = new SnapablePoint (id, new Vector3 (midPointX, midPointY, -1));
+				var newSnapablePoint = new SnapablePoint (id, new Vector3 (midPointX, midPointY, -1), new Vector2(i*scale.x,j*scale.y));
 				snapablePoints.Add(newSnapablePoint);
 
 				var pieceObject = GameObject.Instantiate (gameboard.PiecePrefab).GetComponent<Piece>();
@@ -93,8 +94,8 @@ public abstract class PuzzlePivot {
 				pieceObject.id = id;
 				pieceObject.puzzlePivot = this;
 
-				pieceObject.PieceRenderer.material.SetTextureScale ("_MainTex",scale);
-				pieceObject.PieceRenderer.material.SetTextureOffset("_MainTex", new Vector2(i*scale.x,j*scale.y));
+				pieceObject.PieceRenderer.material.SetTextureScale ("_MainTex", scale);
+				pieceObject.PieceRenderer.material.SetTextureOffset("_MainTex", newSnapablePoint.initialPieceTextureOffset);
 				pieceObject.PieceRendererList = new List<GameObject> ();
 				pieceObject.PieceRendererList.Add (pieceObject.PieceRenderer.gameObject);
 

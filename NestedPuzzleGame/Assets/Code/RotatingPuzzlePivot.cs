@@ -5,7 +5,7 @@ using System.Linq;
 
 public class RotatingPuzzlePivot : CombinedPuzzlePivot {
 	
-	public RotatingPuzzlePivot(GameObject parent, Vector2 sizeOfPicture, GameBoard gameboard, SubPuzzle subPuzzle) : base(parent, sizeOfPicture, gameboard, subPuzzle) {
+	public RotatingPuzzlePivot(GameObject parent, Vector2 sizeOfPicture, Vector2 numberOfPieces, GameBoard gameboard, SubPuzzle subPuzzle) : base(parent, sizeOfPicture, numberOfPieces, gameboard, subPuzzle) {
 		
 	}
 
@@ -30,9 +30,14 @@ public class RotatingPuzzlePivot : CombinedPuzzlePivot {
 		}
 	}
 
-	internal override void SetPiecePivotsGoal (List<PiecePivot> piecePivots) {
-		for (int i = 0; i < piecePivots.Count; i++) {
-			piecePivots[i].goalKeyPieceDictionary = SetupKeyPieceDictionary (new Vector3 (0, 180 * i, 0));
+	internal override void ScramblePiecesAndAssignToSnapablePoints (int piecePivotIndex, int pieceRendererIndex) {
+		var pivot = TopPivot ();
+		int i = 0;
+		foreach (var snapablePoint in TopPivot().snapablePoints) {
+			pivot.pieces[i].transform.localPosition = new Vector3(snapablePoint.position.x,snapablePoint.position.y,pivot.pieces[i].transform.localPosition.z);
+			pivot.pieces[i].transform.localEulerAngles = new Vector3 (0, 180 * piecePivotIndex, 0);
+			snapablePoint.piece = pivot.pieces[i];
+			i++;
 		}
 	}
 

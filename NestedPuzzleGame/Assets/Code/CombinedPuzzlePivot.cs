@@ -6,8 +6,8 @@ using System.Linq;
 public abstract class CombinedPuzzlePivot : PuzzlePivot {
 	internal PuzzlePivot internalPuzzlePivot;
 
-	public CombinedPuzzlePivot(GameObject parent, Vector2 sizeOfPicture, GameBoard gameboard, SubPuzzle subPuzzle) : base(parent, sizeOfPicture, gameboard, subPuzzle) {
-		internalPuzzlePivot = new JigsawPuzzlePivot (parent,sizeOfPicture,gameboard, subPuzzle);
+	public CombinedPuzzlePivot(GameObject parent, Vector2 sizeOfPicture, Vector2 numberOfPieces, GameBoard gameboard, SubPuzzle subPuzzle) : base(parent, sizeOfPicture, numberOfPieces, gameboard, subPuzzle) {
+		internalPuzzlePivot = new JigsawPuzzlePivot (parent, sizeOfPicture, numberOfPieces, gameboard, subPuzzle);
 		internalPuzzlePivot.numberOfPieces = new Vector2(2,2);
 		internalPuzzlePivot.subPuzzle = subPuzzle;
 	}
@@ -22,7 +22,9 @@ public abstract class CombinedPuzzlePivot : PuzzlePivot {
 
 	private List<PiecePivot> piecePivots = new List<PiecePivot>();
 
-	private void HideAllPiecePivots() {
+	internal bool allPiecePivotsCompleted;
+
+	public void HideAllPiecePivots() {
 		foreach(var piecePivot in piecePivots) {
 			piecePivot.pivot.SetActive (false);
 		}
@@ -34,9 +36,9 @@ public abstract class CombinedPuzzlePivot : PuzzlePivot {
 
 	internal abstract void SetPiecePivotsExtraRenderer (List<PiecePivot> piecePivots);
 
-	internal abstract void SetPiecePivotsGoal (List<PiecePivot> piecePivots);
-
 	internal abstract void PiecePivotPieceClicked(Piece piece, Vector3 mousePosInWorld);
+
+	internal abstract void ScramblePiecesAndAssignToSnapablePoints (int piecePivotIndex, int pieceRendererIndex);
 
 	internal override IEnumerator SpawnPieces(Texture texture) {
 		yield return internalPuzzlePivot.SpawnPieces (texture);
@@ -65,6 +67,12 @@ public abstract class CombinedPuzzlePivot : PuzzlePivot {
 		HideAllPiecePivots();
 	}
 
+	private void SetPiecePivotsGoal (List<PiecePivot> piecePivots) {
+		for (int i = 0; i < piecePivots.Count; i++) {
+			piecePivots[i].goalKeyPieceDictionary = SetupKeyPieceDictionary (i, piecePivots[i].pieceRendererIndex);
+		}
+	}
+
 	private List<PiecePivot> CreatePiecePivotList() {
 		var piecePivots = new List<PiecePivot> ();
 		var nPiecesInPivot = internalPuzzlePivot.pieces.Count / 2;
@@ -73,7 +81,7 @@ public abstract class CombinedPuzzlePivot : PuzzlePivot {
 			var piecePivotGameObject = new GameObject ();
 			piecePivot.pivot = piecePivotGameObject;
 
-			piecePivotGameObject.transform.parent = pivot.transform;
+			piecePivotGameObject.transform.parent = TopPivot().pivot.transform;
 			piecePivotGameObject.transform.localPosition = new Vector3 (0,0,-1);
 			for (int j = 0; j <nPiecesInPivot; j++) {
 				internalPuzzlePivot.pieces [i*nPiecesInPivot+j].transform.parent = piecePivotGameObject.transform;
@@ -116,16 +124,13 @@ public abstract class CombinedPuzzlePivot : PuzzlePivot {
 		piecePivot.pictureNoPieces = sideNoPiecesTexture;
 	}
 
-	internal KeyPieceDictionary SetupKeyPieceDictionary(Vector3 angle) {
+
+
+	internal KeyPieceDictionary SetupKeyPieceDictionary(int piecePivotIndex, int pieceRendererIndex) {
 		var pivot = TopPivot ();
 
-		int k = 0;
-		foreach (var snapablePoint in pivot.snapablePoints) {
-			pivot.pieces[k].transform.localPosition = new Vector3(snapablePoint.position.x,snapablePoint.position.y,pivot.pieces[k].transform.localPosition.z);
-			pivot.pieces[k].transform.localEulerAngles = angle;
-			snapablePoint.piece = pivot.pieces[k];
-			k++;
-		}
+		ScramblePiecesAndAssignToSnapablePoints (piecePivotIndex, pieceRendererIndex);
+
 		var goalKeyPieceDictionary = KeyPieceDictionary.SetupKeyPieceDictionary (pivot, pivot.pieces);
 
 		foreach (var snapablePoint in pivot.snapablePoints) {
@@ -136,23 +141,28 @@ public abstract class CombinedPuzzlePivot : PuzzlePivot {
 	}
 
 	public override void PieceClicked(Piece piece, Vector3 mousePosInWorld) {
-		bool allPiecePivotsCompleted = true;
-		foreach (var piecePivot in piecePivots) {
-			if (!piecePivot.pivot.activeSelf) {
-				allPiecePivotsCompleted = false;
-			}
-		}
 		if (allPiecePivotsCompleted) return;
-
 		PiecePivotPieceClicked (piece, mousePosInWorld);
 	}
 
+	private void CheckIfAllPiecePivotsCompleted() {
+		foreach (var piecePivot in piecePivots) {
+			if (!piecePivot.pivot.activeSelf) {
+				return;
+			}
+		}
+		allPiecePivotsCompleted = true;
+	}
+
+
 	internal override bool CheckForWin() {
+		CheckIfAllPiecePivotsCompleted ();
+
 		int i = 0;
 		foreach (var piecePivot in piecePivots) {
 			if (piecePivot.goalKeyPieceDictionary.IsPiecesPlacedCorrectly (TopPivot())) {
 				piecePivot.pivot.SetActive (true);
-				SetTextureForPiecesRenderer (piecePivot.pictureNoPieces, piecePivots[i].pieceRendererIndex);
+				TopPivot().SetTextureForPiecesRenderer (piecePivot.pictureNoPieces, piecePivots[i].pieceRendererIndex);
 			}
 			i++;
 		}
