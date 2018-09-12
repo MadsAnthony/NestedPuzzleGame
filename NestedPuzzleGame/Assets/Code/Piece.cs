@@ -24,8 +24,10 @@ public class Piece : MonoBehaviour {
 	}
 
 	public string FullId {
-		get { return id+Mathf.RoundToInt(transform.localRotation.y).ToString();}
+		get { return id+Mathf.RoundToInt(transform.localRotation.y).ToString()+Mathf.RoundToInt(ParameterT);}
 	}
+
+	public float ParameterT { get; set; }
 
 	public List<GameObject> PieceRendererList { get; set; }
 

@@ -4,9 +4,11 @@ using UnityEngine;
 using System.Linq;
 
 public class TimePuzzlePivot : CombinedPuzzlePivot {
-	PuzzlePivot topPuzzlePivot;
+	private PuzzlePivot topPuzzlePivot;
+	private float t;
+
 	public TimePuzzlePivot(GameObject parent, Vector2 sizeOfPicture, Vector2 numberOfPieces, GameBoard gameboard, SubPuzzle subPuzzle) : base(parent, sizeOfPicture, numberOfPieces, gameboard, subPuzzle) {
-		topPuzzlePivot = new JigsawPuzzlePivot (parent, sizeOfPicture, numberOfPieces, gameboard, subPuzzle);
+		topPuzzlePivot = new JigsawPuzzlePivot (pivot, sizeOfPicture, numberOfPieces, gameboard, subPuzzle);
 		topPuzzlePivot.subPuzzle = subPuzzle;
 	}
 
@@ -36,6 +38,7 @@ public class TimePuzzlePivot : CombinedPuzzlePivot {
 			piece.PieceRendererList[pieceRendererIndex].GetComponent<MeshRenderer>().material.SetTextureOffset("_MainTex", snapablePoint.initialPieceTextureOffset);
 			piece.transform.localPosition = new Vector3(snapablePoint.position.x,snapablePoint.position.y,pivot.pieces[i].transform.localPosition.z);
 			snapablePoint.piece = piece;
+			piece.ParameterT = piecePivotIndex;
 			i++;
 		}
 	}
@@ -43,15 +46,16 @@ public class TimePuzzlePivot : CombinedPuzzlePivot {
 	internal override void PiecePivotPieceClicked(Piece piece, Vector3 mousePosInWorld) {
 		
 	}
-
-	private float t;
 	public override void CustomUpdate() {
+		base.CheckForWin ();
+
 		base.CustomUpdate ();
 
 		if (allPiecePivotsCompleted) return;
 
 		t += Time.deltaTime*4;
 		foreach (var piece in topPuzzlePivot.pieces) {
+			piece.ParameterT = t%1;
 			var color = piece.PieceRendererList[1].GetComponent<MeshRenderer>().material.color;
 			color.a = (Mathf.Sin(t)+1)/2;
 			piece.PieceRendererList[1].GetComponent<MeshRenderer>().material.color = color;

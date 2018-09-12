@@ -82,9 +82,11 @@ public abstract class CombinedPuzzlePivot : PuzzlePivot {
 			piecePivot.pivot = piecePivotGameObject;
 
 			piecePivotGameObject.transform.parent = TopPivot().pivot.transform;
-			piecePivotGameObject.transform.localPosition = new Vector3 (0,0,-1);
+			piecePivotGameObject.transform.localPosition = new Vector3 (0,0,-2);
 			for (int j = 0; j <nPiecesInPivot; j++) {
-				internalPuzzlePivot.pieces [i*nPiecesInPivot+j].transform.parent = piecePivotGameObject.transform;
+				var piece = internalPuzzlePivot.pieces[i*nPiecesInPivot+j];
+				piece.transform.parent = piecePivotGameObject.transform;
+				piece.transform.localPosition = new Vector3 (piece.transform.localPosition.x,piece.transform.localPosition.y,j*-0.01f);
 			}
 			piecePivots.Add (piecePivot);
 		}
