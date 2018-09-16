@@ -8,6 +8,7 @@ public class LevelPortrait : MonoBehaviour {
 	[SerializeField] private MeshRenderer backPicture;
 	[SerializeField] private GameObject picturePivot;
 	[SerializeField] private GameObject picturePanel;
+	[SerializeField] private SpriteRenderer frame;
 	[SerializeField] private GameObject masterPuzzlePivot;
 	[SerializeField] private TextMesh masterPuzzleAmountText;
 	[SerializeField] private MeshRenderer collectableNormal;
@@ -24,7 +25,7 @@ public class LevelPortrait : MonoBehaviour {
 
 		if (levelIndex == 0) {
 			masterPuzzlePivot.SetActive(true);
-			masterPuzzlePivot.transform.localPosition = new Vector3(0,0.3f+pictureSize.y/2f,0);
+			masterPuzzlePivot.transform.localPosition = new Vector3(0,0.5f+pictureSize.y/2f,0);
 			masterPuzzleAmountText.text = LevelSelectView.amountOfMasterPieces + "/"+"10";
 			picturePanel.SetActive(false);
 			var key = Director.Instance.WorldIndex.ToString () + "_0";
@@ -38,9 +39,10 @@ public class LevelPortrait : MonoBehaviour {
 			masterPuzzlePivot.SetActive(false);
 			picturePanel.SetActive(true);
 		}
-		
+
 		picturePivot.transform.localScale = pictureSize;
-		picturePanel.transform.localPosition = new Vector3(0,1.2f+pictureSize.y/2f,0);
+		picturePanel.transform.localPosition = new Vector3(0,1.4f+pictureSize.y/2f,0);
+		frame.size = pictureSize*(1f/frame.transform.localScale.x)+new Vector3(0.1f,0.1f,0);
 		var levelSaveNormal = Director.SaveData.GetLevelSaveDataEntry(Director.Instance.WorldIndex.ToString() + "_" + levelIndex.ToString() + "_" + false.ToString());
 		var levelSaveAlternative = Director.SaveData.GetLevelSaveDataEntry(Director.Instance.WorldIndex.ToString() + "_" + levelIndex.ToString() + "_" + true.ToString());
 		collectableNormal.material.color = Color.black;
