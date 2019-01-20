@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,17 +23,25 @@ public class LevelSelectView : MonoBehaviour {
 	}
 
 	private void Start() {
+		float yPos = -50;
 		int i = 0;
 		foreach (var level in Director.LevelDatabase.levels) {
 			var levelPortraitObject = Instantiate (levelPortraitPrefab, transform);
-			if (i == 0) {
-				levelPortraitObject.transform.localPosition = new Vector3 (-20, 0, 0);
-			} else {
-				levelPortraitObject.transform.localPosition = new Vector3 (i*18, 0, 0);
-			}
 			var levelPortrait = levelPortraitObject.GetComponent<LevelPortrait> ();
 			levelPortrait.levelIndex = i;
+			var pictureHeight = levelPortrait.GetPictureSize().y;
+			if (i == 0) {
+				levelPortraitObject.transform.localPosition = new Vector3 (0, yPos, 0);
+				yPos -= 10;
+			} else {
+				yPos -= pictureHeight*0.5f;
+				levelPortraitObject.transform.localPosition = new Vector3 (0, yPos, 0);
+			}
+			
 			listOfPortraits.Add (levelPortrait);
+			
+			yPos -= pictureHeight*0.5f;
+			yPos -= 5;
 			i++;
 		}
 
@@ -57,7 +66,7 @@ public class LevelSelectView : MonoBehaviour {
 
 	private void MouseUp() {
 		var dist = mousePosDownInWorld - mousePosUpInWorld;
-		var horiziontalDot = Vector3.Dot (Vector3.right, dist);
+		var horiziontalDot = Vector3.Dot (Vector3.down, dist);
 		if (Mathf.Abs(horiziontalDot) > 1) {
 			if (horiziontalDot < 0) {
 				MoveLeft ();

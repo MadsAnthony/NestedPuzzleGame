@@ -13,15 +13,13 @@ public class LevelPortrait : MonoBehaviour {
 	[SerializeField] private TextMesh masterPuzzleAmountText;
 	[SerializeField] private MeshRenderer collectableNormal;
 	[SerializeField] private MeshRenderer collectableBack;
-
+	
 	public int levelIndex;
 
 	void Start() {
 		var level = Director.LevelDatabase.levels [levelIndex];
 
-		var scale = 12;
-		var aspectRatio = (float)level.picture.height/level.picture.width;
-		var pictureSize = new Vector3(scale, scale*aspectRatio, 1);
+		var pictureSize = GetPictureSize();
 
 		if (levelIndex == 0) {
 			masterPuzzlePivot.SetActive(true);
@@ -61,6 +59,16 @@ public class LevelPortrait : MonoBehaviour {
 		}
 	}
 
+	public Vector3 GetPictureSize() {
+		var level = Director.LevelDatabase.levels [levelIndex];
+		
+		var scale = 12;
+		var aspectRatio = (float)level.picture.height/level.picture.width;
+		var pictureSize = new Vector3(scale, scale*aspectRatio, 1);
+		
+		return pictureSize;
+	}
+	
 	public void SetMasterPuzzleTexture() {
 		StartCoroutine (SetMasterPuzzleTextureCr());
 	}
