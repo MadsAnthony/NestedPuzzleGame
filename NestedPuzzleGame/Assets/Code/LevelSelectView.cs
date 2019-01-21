@@ -112,6 +112,22 @@ public class LevelSelectView : MonoBehaviour {
 		Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("WorldSelectScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
 	}
 
+	public void SwapLevels() {
+		if (currentLevelIndex==0 || currentLevelIndex >= listOfPortraits.Count-1) return;
+		
+		var currentLevel = listOfPortraits[currentLevelIndex];
+		var nextLevel = listOfPortraits[currentLevelIndex+1];
+		
+		var currentLevelNewPos = currentLevel.transform.localPosition + new Vector3(0, -nextLevel.GetPictureSize().y-5,0);
+		var nextLevelNewPos = nextLevel.transform.localPosition + new Vector3(0, currentLevel.GetPictureSize().y+5,0);
+		
+		StartCoroutine(AnimateTo(currentLevel.gameObject, currentLevelNewPos, 0.05f));
+		StartCoroutine(AnimateTo(nextLevel.gameObject, nextLevelNewPos, 0.05f));
+
+		listOfPortraits[currentLevelIndex] = nextLevel;
+		listOfPortraits[currentLevelIndex+1] = currentLevel;
+	}
+
 	public void MoveLeft() {
 		if (currentLevelIndex == 1 && amountOfMasterPieces == 0) return;
 		currentLevelIndex -= 1;
@@ -138,12 +154,12 @@ public class LevelSelectView : MonoBehaviour {
 	}
 
 	private IEnumerator AnimateTo(GameObject gameObject, Vector3 endPosition, float timeIncrement) {
-		var startPosition = gameObject.transform.position;
+		var startPosition = gameObject.transform.localPosition;
 		float time = 0;
 		while (time < 1) {
 			time += timeIncrement;
 			var t = easeInOutCurve.Evaluate (time);
-			gameObject.transform.position = (startPosition * (1 - t)) + endPosition * t;
+			gameObject.transform.localPosition = (startPosition * (1 - t)) + endPosition * t;
 			yield return null;
 		}
 	}
