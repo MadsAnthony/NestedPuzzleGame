@@ -40,7 +40,7 @@ public class LevelPortrait : MonoBehaviour {
 
 		picturePivot.transform.localScale = pictureSize;
 		picturePanel.transform.localPosition = new Vector3(0,1.4f+pictureSize.y/2f,0);
-		frame.size = pictureSize*(1f/frame.transform.localScale.x)+new Vector3(0.1f,0.1f,0);
+		frame.size = pictureSize*(1f/frame.transform.localScale.x)+new Vector3(0.15f,0.15f,0);
 		var levelSaveNormal = Director.SaveData.GetLevelSaveDataEntry(Director.Instance.WorldIndex.ToString() + "_" + levelIndex.ToString() + "_" + false.ToString());
 		var levelSaveAlternative = Director.SaveData.GetLevelSaveDataEntry(Director.Instance.WorldIndex.ToString() + "_" + levelIndex.ToString() + "_" + true.ToString());
 		collectableNormal.material.color = Color.black;

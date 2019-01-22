@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9faea46c07cdb9947bd762f9b7e559e9, type: 3}
+  m_Name: Levelb 1
+  m_EditorClassIdentifier: 
+  picture: {fileID: 2800000, guid: 03a96a3ac351261478f747b0f3f94875, type: 3}
+  isMasterPuzzle: 0
+  numberOfPieces: {x: 2, y: 1}
+  subPuzzleNodes:
+  - id: 0
+    puzzlePivots:
+    - type: 0
+      numberOfPieces: {x: 2, y: 1}
+      collectable:
+        isActive: 0
+        position: {x: 0, y: 0}
+        scale: {x: 1, y: 1}
+    collectable:
+      isActive: 1
+      position: {x: -1, y: 0}
+      scale: {x: 1, y: 1}
+  - id: 0-0
+    puzzlePivots:
+    - type: 0
+      numberOfPieces: {x: 2, y: 1}
+      collectable:
+        isActive: 0
+        position: {x: 0, y: 0}
+        scale: {x: 1, y: 1}
+    collectable:
+      isActive: 0
+      position: {x: 0, y: 0}
+      scale: {x: 1, y: 1}
+  - id: 0-1
+    puzzlePivots:
+    - type: 0
+      numberOfPieces: {x: 2, y: 1}
+      collectable:
+        isActive: 0
+        position: {x: 0, y: 0}
+        scale: {x: 1, y: 1}
+    collectable:
+      isActive: 0
+      position: {x: 0, y: 0}
+      scale: {x: 1, y: 1}

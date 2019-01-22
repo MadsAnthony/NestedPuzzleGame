@@ -112,20 +112,31 @@ public class LevelSelectView : MonoBehaviour {
 		Director.TransitionManager.PlayTransition (() => { SceneManager.LoadScene ("WorldSelectScene");}, 0.2f, Director.TransitionManager.FadeToBlack(),  Director.TransitionManager.FadeOut());
 	}
 
-	public void SwapLevels() {
-		if (currentLevelIndex==0 || currentLevelIndex >= listOfPortraits.Count-1) return;
+	public void SwapLevelsUp() {
+		if (currentLevelIndex <= 1) return;
+		SwapLevels(currentLevelIndex - 1);
+	}
+
+	public void SwapLevelsDown() {
+		if (currentLevelIndex >= listOfPortraits.Count - 1) return;
+		SwapLevels(currentLevelIndex + 1);
+	}
+	
+	public void SwapLevels(int nextLevelIndex) {
+		if (currentLevelIndex == 0) return;
 		
 		var currentLevel = listOfPortraits[currentLevelIndex];
-		var nextLevel = listOfPortraits[currentLevelIndex+1];
-		
-		var currentLevelNewPos = currentLevel.transform.localPosition + new Vector3(0, -nextLevel.GetPictureSize().y-5,0);
-		var nextLevelNewPos = nextLevel.transform.localPosition + new Vector3(0, currentLevel.GetPictureSize().y+5,0);
+		var nextLevel = listOfPortraits[nextLevelIndex];
+
+		var dir = (nextLevelIndex > currentLevelIndex)? 1 : -1;
+		var currentLevelNewPos = currentLevel.transform.localPosition + new Vector3(0, -nextLevel.GetPictureSize().y-5,0)*dir;
+		var nextLevelNewPos = nextLevel.transform.localPosition + new Vector3(0, currentLevel.GetPictureSize().y+5,0)*dir;
 		
 		StartCoroutine(AnimateTo(currentLevel.gameObject, currentLevelNewPos, 0.05f));
 		StartCoroutine(AnimateTo(nextLevel.gameObject, nextLevelNewPos, 0.05f));
 
 		listOfPortraits[currentLevelIndex] = nextLevel;
-		listOfPortraits[currentLevelIndex+1] = currentLevel;
+		listOfPortraits[nextLevelIndex] = currentLevel;
 	}
 
 	public void MoveLeft() {
