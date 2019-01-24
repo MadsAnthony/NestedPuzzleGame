@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9faea46c07cdb9947bd762f9b7e559e9, type: 3}
   m_Name: Leveld 1
   m_EditorClassIdentifier: 
-  picture: {fileID: 2800000, guid: 54a8d70f62d79754fbbc744b29518a70, type: 3}
+  picture: {fileID: 2800000, guid: a8dc4a680cc3b964083ae6f1337f5041, type: 3}
   isMasterPuzzle: 0
   numberOfPieces: {x: 2, y: 2}
   subPuzzleNodes:
