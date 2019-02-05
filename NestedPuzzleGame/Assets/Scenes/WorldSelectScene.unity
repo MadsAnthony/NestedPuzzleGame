@@ -702,3 +702,53 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3a45646645cd5ad4d8ccb98196354f32, type: 3}
+--- !u!1001 &2147108912
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1997848363296112, guid: 3a45646645cd5ad4d8ccb98196354f32, type: 3}
+      propertyPath: m_Name
+      value: WorldDot (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4858847478055870, guid: 3a45646645cd5ad4d8ccb98196354f32, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 3.62
+      objectReference: {fileID: 0}
+    - target: {fileID: 4858847478055870, guid: 3a45646645cd5ad4d8ccb98196354f32, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -6.87
+      objectReference: {fileID: 0}
+    - target: {fileID: 4858847478055870, guid: 3a45646645cd5ad4d8ccb98196354f32, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4858847478055870, guid: 3a45646645cd5ad4d8ccb98196354f32, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4858847478055870, guid: 3a45646645cd5ad4d8ccb98196354f32, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4858847478055870, guid: 3a45646645cd5ad4d8ccb98196354f32, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4858847478055870, guid: 3a45646645cd5ad4d8ccb98196354f32, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4858847478055870, guid: 3a45646645cd5ad4d8ccb98196354f32, type: 3}
+      propertyPath: m_RootOrder
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 114494699864363458, guid: 3a45646645cd5ad4d8ccb98196354f32,
+        type: 3}
+      propertyPath: worldIndex
+      value: 3
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3a45646645cd5ad4d8ccb98196354f32, type: 3}
