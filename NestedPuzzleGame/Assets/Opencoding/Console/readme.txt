@@ -7,6 +7,53 @@ The documentation for TouchConsole Pro is available here: http://opencoding.net/
 If you just want to quickly have a play around with the console, open the ConsoleDemoScene scene in the Demo folder and press Play!
 
 === Changelog ===
+
+== Version 2.6 ==
+New features
+- The console now respects the safe areas on the iPhone X/XS/XR (and on Android devices, once Unity supports this).
+- The console now displays errors from other threads as well as the main thread.
+- Added CommandHandlers.BeforeCommandParsedHook. This is an advanced feature that allows you to bypass the built-in command handling. Returning true will tell the CommandHandlers system you've handled it, returning false will allow the CommandHandlers system to function as normal. An example is in BallGameController.SetupDebugConsole.
+- Improved behaviour of console on recent Android versions. The console now shrinks to fit in the space available between the keyboard and the top of the screen as it does on iOS (this was broken by a Unity change fairly recently). It also now no longer considers a tap outside the keyboard as confirmation of input. The keyboard also no longer opens automatically when a suggestion button is tapped, or when the search/filter bar is opened - you have to tap the input field to do this. This is due to the keyboard preventing touches on Unity UI when open, which made some uses with auto-complete options quite painful.
+- Added option to strongly reference command handlers so that they won't get garbage collected. This is off by default, and turned on by default for delegates and actions that are passed into CommandHandlers.RegisterCommandHandler. This can be controlled by the strongReference parameter for RegisterCommandHandler/RegisterCommandHandlers.
+- Enabled opening/closing the console using keyboard keys on mobile devices, to support bluetooth keyboards and Android-based desktop emulators.
+
+Bug fixes
+- Fixed an issue building on Android caused by package name conflicts.
+- Fixed issue with java BuildConfig class causing issues in Android Gradle builds.
+- Fixed a warning on Unity 2017.2 or newer related to the console's use of a deprecated Unity API.
+- Fixed an error when using the console in a scene that didn't have an EventSystem object active.
+- Fixed registering closures with CommandHandlers.RegisterCommandHandler causing an exception when they were used.
+
+== Version 2.5.1 ==
+Bug fixes
+- Fixed RegisterCommandHandler not working when called with an instance property.
+- Provided a helpful error that tells you when the object that contains a command handler gets garbage collected.
+
+== Version 2.5.0 == 
+New features
+- Added support for iPhone X safe area, the console will be inset in from the left and right edges.
+
+Bug fixes
+- Fixed an issue with UI clicks/taps falling through the console to the Unity UI
+- Moved Plugins back to their own folder as this broke some features (emailing logs primarily) on Android.
+
+== Version 2.4.0 ==
+New features
+- Added DebugConsole.Instance.ConsoleWidth property which allows you to change the width of the console. If set to 0 (the default) it'll fill the screen width.
+- Added support for Linux.
+- Changed layout of folders, everything is now in one folder rather than split between Plugins and the Opencoding folder.
+- Now captures log messages from threads that aren't the main thread using the Unity logMessageReceivedThreaded callback rather than via the AppDomain.
+- Added support for UWP platforms - they're recongised as desktop platforms so require a keyboard.
+
+Bug fixes
+- Fixes to support Unity 2017
+- Fixed stacktraces not being escaped in the exported/emailed log files. This caused some characters (such as < and >) to cause the log file to be corrupted.
+- Fixed compilation error on Unity 2017.
+- Changed behaviour of keyboard on Android, this makes it usable (but not quite ideal) on recent Android versions where the keyboard covers more of the screen and behaves slightly differently. Many thanks to Heiko Schmitt at Big Point for his help with this.
+
+Removed features
+- Removed support for Unity 4.x
+
 == Version 2.3.1 ==
 Bug fixes
 - Fixed gradle builds failing with an error related to a BuildConfig class in the jar file

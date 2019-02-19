@@ -5,11 +5,8 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Callbacks;
-#if UNITY_5 && !(UNITY_5_0 || UNITY_5_1 || UNITY_5_2)
+#if UNITY_5_3_OR_NEWER && !(UNITY_5_0 || UNITY_5_1 || UNITY_5_2)
 using UnityEditor.SceneManagement;
-#endif
-#if !UNITY_5
-using Opencoding.XCodeEditor;
 #endif
 using UnityEngine;
 
@@ -17,19 +14,6 @@ namespace Opencoding.Console.Editor
 {
 	static class BuildPostProcessor
 	{
-#if !UNITY_5
-		[PostProcessBuild(200)]
-		public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject)
-		{
-			if (target != BuildTarget.iOS)
-				return;
-
-			var project = new XCProject(pathToBuiltProject);
-				project.ApplyMod(Application.dataPath, Path.Combine(DebugConsoleEditorSettings.OpencodingDirectoryLocation, "Console/Editor/fixup.projmods"));
-				project.Save();
-		}
-#endif
-
 		[PostProcessScene]
 		public static void OnPostprocessScene()
 		{
@@ -39,12 +23,12 @@ namespace Opencoding.Console.Editor
 			var debugConsoles = UnityEngine.Object.FindObjectsOfType<DebugConsole>();
 		    if (debugConsoles.Length > 1)
 		    {
-#if UNITY_4_5 || UNITY_4_6 || UNITY_4_7 || UNITY_5_0 || UNITY_5_1 || UNITY_5_2
+#if UNITY_5_0 || UNITY_5_1 || UNITY_5_2
                 throw new InvalidOperationException("More than one debug console in the scene " +
 		                                            EditorApplication.currentScene);
 #else
                 throw new InvalidOperationException("More than one debug console in the scene " + 
-                    UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene().name);
+                    EditorSceneManager.GetActiveScene().name);
 #endif
             }
 
@@ -81,8 +65,6 @@ namespace Opencoding.Console.Editor
 #if UNITY_ANDROID
 		    ConformAndroidManifest();
 #endif
-		    VerifyLinkXmlFile();
-
 		}
 
 	    private static void ConformAndroidManifest()
@@ -93,25 +75,6 @@ namespace Opencoding.Console.Editor
 	        var newContent = regEx.Replace(text, "android:authorities=\"" + PlayerSettings.applicationIdentifier + ".fileprovider\"");
             if(newContent != text)
                 File.WriteAllText(manifestFilePath, newContent);
-	    }
-
-	    private static void VerifyLinkXmlFile()
-	    {
-	        var linkXmlContent = "<linker>\n" +
-	                             "       <assembly fullname=\"UnityEngine\">\n" +
-	                             "               <type fullname=\"UnityEngine.TouchScreenKeyboard\" preserve=\"all\"/>\n" +
-	                             "       </assembly>\n" +
-	                             "</linker>";
-            if (!File.Exists("Assets/link.xml"))
-	        {
-	            File.WriteAllText("Assets/link.xml", linkXmlContent);
-                Debug.LogWarning("The link.xml file was missing from the Assets folder. This is required for TouchConsole Pro to work on AOT builds (iOS and any platform using IL2CPP). The file has been created with the default content.");
-	            return;
-	        }
-
-	        var content = File.ReadAllText("Assets/link.xml");
-            if(!content.Contains("UnityEngine.TouchScreenKeyboard"))
-                throw new InvalidOperationException("Couldn't find TouchScreenKeyboard listed in Assets/link.xml. This is required for TouchConsole Pro to work on AOT builds (iOS and any platform using IL2CPP). See www.opencoding.net/TouchConsolePro/technical_documentation.php#stripping for an explanation of how to fix this.");
 	    }
 	}
 

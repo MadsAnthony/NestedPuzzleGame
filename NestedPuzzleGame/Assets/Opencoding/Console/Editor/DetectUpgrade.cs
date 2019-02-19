@@ -47,10 +47,10 @@ namespace Opencoding.Console.Editor
                         {
                             var path = AssetDatabase.GUIDToAssetPath(guid);
                             return
-                                path.StartsWith("Assets/Plugins/Android", StringComparison.InvariantCultureIgnoreCase) &&
+                                path.IndexOf("Opencoding", 0, StringComparison.InvariantCultureIgnoreCase) != -1 &&
                                 path.ToLower().EndsWith(".jar");
                         }
-                    );
+                    ); 
                      
                     if (includedVersionIndex != -1)
                     {
@@ -58,7 +58,8 @@ namespace Opencoding.Console.Editor
                             "There are two copies of the android-support-v4 library in your project. This could cause you problems when you build for Android. Do you want to delete the one that is supplied with TouchConsole Pro?",
                             "Yes", "No - never show this again"))
                         {
-                            AssetDatabase.DeleteAsset(androidSupportJars[includedVersionIndex]);
+                            var assetPath = AssetDatabase.GUIDToAssetPath(androidSupportJars[includedVersionIndex]);
+                            AssetDatabase.MoveAssetToTrash(assetPath);
                             AssetDatabase.Refresh();
                         }
                         else
