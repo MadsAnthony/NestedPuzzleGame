@@ -40,7 +40,7 @@ public class MultiListEditorWindowDemo : EditorWindow {
 		
 		public ExampleListAdaptor(IList<string> list) : base(list, null, 16f) {
         }
-		
+
 		public override void DrawItemBackground(Rect position, int index) {
 			if (this == s_SelectedList && List[index] == s_SelectedItem) {
 				Color restoreColor = GUI.color;
